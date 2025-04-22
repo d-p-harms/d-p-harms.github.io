@@ -873,32 +873,27 @@
         
         // Calculate risk metrics for BART
         function calculateRiskMetrics() {
-            // Calculate average pumps (all trials)
-            const meanPumpsAllTrials = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
-            
-            // Calculate adjusted pumps (unexploded balloons only)
-            const meanPumpsAllTrials = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
+    // Calculate average pumps (all trials)
+    const meanPumpsAllTrials = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
 
-// Use this for risk aversion score instead
-            const riskAversionScore = 100 * (1 - (meanPumpsAllTrials / MAX_PUMPS));
+    // Calculate number of explosions
+    const numberOfExplosions = popHistory.filter(popped => popped).length;
 
-            // Calculate proportion of balloons exploded
-            const proportionExploded = numberOfExplosions / popHistory.length;
-            
-            // Calculate risk aversion score (0-100, higher = more risk averse)
-            // This is the inverse of risk-taking behavior
-            const riskAversionScore = meanAdjustedPumps > 0 
-                ? 100 * (1 - (meanAdjustedPumps / MAX_PUMPS)) 
-                : 100;
-            
-            return {
-                meanPumpsAllTrials,
-                meanAdjustedPumps,
-                numberOfExplosions,
-                proportionExploded,
-                riskAversionScore
-            };
-        }
+    // Calculate proportion of balloons exploded
+    const proportionExploded = numberOfExplosions / popHistory.length;
+
+    // Calculate risk aversion score (0–100, higher = more risk averse)
+    const riskAversionScore = 100 * (1 - (meanPumpsAllTrials / MAX_PUMPS));
+
+    return {
+        meanPumpsAllTrials,
+        meanAdjustedPumps: meanPumpsAllTrials, // Optional — can rename/remove this
+        numberOfExplosions,
+        proportionExploded,
+        riskAversionScore
+    };
+}
+
         
         // Calculate career risk score
         function calculateCareerRiskScore() {
