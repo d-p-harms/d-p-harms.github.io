@@ -294,7 +294,7 @@
             </div>
         </div>
         
-        <!--<!-- Career Aspirations Screen -->
+        <!-- Career Aspirations Screen -->
         <div id="career-screen" class="screen">
             <h2>Part 2: Career Aspirations Questionnaire</h2>
             <p>Please answer the following questions about your career goals and preferences.</p>
@@ -921,8 +921,9 @@
             }
             
             // Career value adjustment (higher score for valuing opportunity over stability)
-            let careerValueAdjustment = 0;
-            if (careerResponses.careerValue === 'opportunity') {
+            let careerValueAdjustment =// Calculate career risk score
+            function calculateCareerRiskScore() {
+
                 careerValueAdjustment = 2;
             } else if (careerResponses.careerValue === 'balanced') {
                 careerValueAdjustment =// Calculate career risk score
