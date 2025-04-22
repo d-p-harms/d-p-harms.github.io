@@ -294,7 +294,7 @@
             </div>
         </div>
         
-        <!-- Career Aspirations Screen -->
+        <!--<!-- Career Aspirations Screen -->
         <div id="career-screen" class="screen">
             <h2>Part 2: Career Aspirations Questionnaire</h2>
             <p>Please answer the following questions about your career goals and preferences.</p>
@@ -627,527 +627,507 @@
 
     <script>
         // BART Task Configuration
-const MAX_PUMPS = 128;  // Maximum possible pumps per balloon
-const NUM_TRIALS = 5;   // Total number of balloons
-const POP_PROBABILITIES = [];  // Will be calculated on initialization
-
-// Google Sheets Script URL - REPLACE THIS WITH YOUR SCRIPT URL
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxS9bwD4T6EgzE3S2TXuwuQ21-8z4CfQ3EMkHe4oGuocfiA1rh7yTsMO0_R7ns1phYv/exec'; 
-
-// Game state
-let currentTrial = 0;
-let currentPumps = 0;
-let pumpsHistory = [];
-let popHistory = [];
-let gameActive = false;
-let participantInfo = {};
-let careerResponses = {};
-
-// DOM elements - Get these after DOM is fully loaded
-let welcomeScreen;
-let gameScreen;
-let careerScreen;
-let resultsScreen;
-let startButton;
-let pumpButton;
-let cashoutButton;
-let submitCareerButton;
-let restartButton;
-let balloon;
-let popImage;
-let message;
-let pointsMessage;
-let progress;
-let statusMessage;
-
-// Calculate pop probabilities for each pump
-function initializePopProbabilities() {
-    for (let i = 1; i <= MAX_PUMPS; i++) {
-        // Probability increases with each pump
-        // For simplicity, we use a linear increase model here
-        POP_PROBABILITIES[i] = i / MAX_PUMPS;
-    }
-}
-
-// Initialize DOM elements
-function initializeElements() {
-    welcomeScreen = document.getElementById('welcome-screen');
-    gameScreen = document.getElementById('game-screen');
-    careerScreen = document.getElementById('career-screen');
-    resultsScreen = document.getElementById('results-screen');
-    startButton = document.getElementById('start-button');
-    pumpButton = document.getElementById('pump-button');
-    cashoutButton = document.getElementById('cashout-button');
-    submitCareerButton = document.getElementById('submit-career-button');
-    restartButton = document.getElementById('restart-button');
-    balloon = document.getElementById('balloon');
-    popImage = document.getElementById('pop-image');
-    message = document.getElementById('message');
-    pointsMessage = document.getElementById('points-message');
-    progress = document.getElementById('progress');
-    statusMessage = document.getElementById('status-message');
-    
-    // For debugging
-    console.log("DOM Elements initialized:");
-    console.log("startButton:", startButton);
-    console.log("pumpButton:", pumpButton);
-    console.log("cashoutButton:", cashoutButton);
-}
-
-// Initialize the game
-function init() {
-    console.log("Initializing game...");
-    
-    // Initialize elements first
-    initializeElements();
-    
-    // Initialize game mechanics
-    initializePopProbabilities();
-    
-    // Set up event listeners
-    if (startButton) {
-        console.log("Adding event listener to start button");
-        startButton.addEventListener('click', startGame);
-    } else {
-        console.error("Start button not found!");
-    }
-    
-    if (pumpButton) pumpButton.addEventListener('click', pumpBalloon);
-    if (cashoutButton) cashoutButton.addEventListener('click', collectPoints);
-    if (submitCareerButton) submitCareerButton.addEventListener('click', submitCareerForm);
-    if (restartButton) restartButton.addEventListener('click', restart);
-    
-    console.log("Game initialization complete");
-}
-
-// Start the game
-function startGame() {
-    console.log("Start game function called");
-    
-    // Validate form
-    const participantId = document.getElementById('participant-id').value;
-    const age = document.getElementById('age').value;
-    const gender = document.getElementById('gender').value;
-    const education = document.getElementById('education').value;
-    
-    if (!participantId || !age || !gender || !education) {
-        alert('Please fill out all fields.');
-        return;
-    }
-    
-    // Store participant info
-    participantInfo = {
-        id: participantId,
-        age: age,
-        gender: gender,
-        education: education,
-        date: new Date().toISOString().slice(0, 19).replace('T', ' ')
-    };
-    
-    // Reset game state
-    currentTrial = 0;
-    currentPumps = 0;
-    pumpsHistory = [];
-    popHistory = [];
-    
-    // Show game screen
-    welcomeScreen.style.display = 'none';
-    gameScreen.style.display = 'block';
-    
-    // Start first trial
-    startTrial();
-}
-
-// Start a new trial
-function startTrial() {
-    currentPumps = 0;
-    gameActive = true;
-    
-    // Update UI
-    currentTrial++;
-    message.textContent = `Trial ${currentTrial} of ${NUM_TRIALS}`;
-    pointsMessage.textContent = `Points for this balloon: 0`;
-    
-    // Reset balloon
-    balloon.style.width = '100px';
-    balloon.style.height = '150px';
-    balloon.style.display = 'block';
-    popImage.style.display = 'none';
-    
-    // Update progress bar
-    const progressPercentage = ((currentTrial - 1) / NUM_TRIALS) * 100;
-    progress.style.width = `${progressPercentage}%`;
-    progress.textContent = `${Math.round(progressPercentage)}%`;
-    
-    // Enable buttons
-    pumpButton.disabled = false;
-    cashoutButton.disabled = false;
-}
-
-// Pump the balloon
-function pumpBalloon() {
-    if (!gameActive) return;
-    
-    currentPumps++;
-    
-    // Check if balloon pops
-    const popProbability = POP_PROBABILITIES[currentPumps];
-    const randomValue = Math.random();
-    
-    if (randomValue < popProbability) {
-        // Balloon pops
-        popBalloon();
-    } else {
-        // Balloon gets bigger
-        const newSize = 100 + (currentPumps * 3);
-        balloon.style.width = `${newSize}px`;
-        balloon.style.height = `${newSize * 1.5}px`;
+        const MAX_PUMPS = 128;  // Maximum possible pumps per balloon
+        const NUM_TRIALS = 5;   // Total number of balloons
+        const POP_PROBABILITIES = [];  // Will be calculated on initialization
         
-        // Update points message
-        pointsMessage.textContent = `Points for this balloon: ${currentPumps}`;
-    }
-}
-
-// Pop the balloon
-function popBalloon() {
-    // Update game state
-    gameActive = false;
-    pumpsHistory.push(currentPumps);
-    popHistory.push(true);
-    
-    // Update UI
-    balloon.style.display = 'none';
-    popImage.style.display = 'block';
-    message.textContent = 'BALLOON POPPED! Points lost.';
-    pointsMessage.textContent = 'Points for this balloon: 0';
-    
-    // Play pop sound effect
-    try {
-        const popSound = new Audio('data:audio/wav;base64,//uQRAAAAWMSLwUIYAAsYkXgoQwAEaYLWfkWgAI0wWs/ItAAAGDgYtAgAyN+QWaAAihwMWm4G8QQRDiMcCBcH3Cc+CDv/7xA4Tvh9Rz/y8QADBwMWgQAZG/ILNAARQ4GLTcDeIIIhxGOBAuD7hOfBB3/94gcJ3w+o5/5eIAIAAAVwWgQAVQ2ORaIQwEMAJiDg95G4nQL7mQVWI6GwRcfsZAcsKkJvxgxEjzFUgfHoSQ9Qq7KNwqHwuB13MA4a1q/DmBrHgPcmjiGoh//EwC5nGPEmS4RcfkVKOhJf+WOgoxJclFz3kgn//dBA+ya1GhurNn8zb//9NNutNuhz31f////9vt///z+IdAEAAAK4LQIAKobHItEIYCGAExBwe8jcToF9zIKrEdDYIuP2MgOWFSE34wYiR5iqQPj0JIeoVdlG4VD4XA67mAcNa1fhzA1jwHuTRxDUQ//iYBczjHiTJcIuPyKlHQkv/LHQUYkuSi57yQT//uggfZNajQ3Vm//Ybnzdk//+h//8/KVdbDuJ3///8//Wvxm1t7lIAaKGYcRH//UCClCxLkzExb3Iap/3Nv10/8Mrrfn1yQj4/Yb+Eg/MhHvvYEeqYuJTmvCr7xyUWD0OLmb9lItk/17Wfj0P9/vbOTt7uIztpJGC//b0WvCn3z2MjFBUxBRKjSJRrxv1emffz//zvfXuWEAAAABD9wvpSgA==');
-        popSound.play();
-    } catch (e) {
-        console.error("Error playing sound:", e);
-    }
-    
-    // Disable pump button, enable cashout for next trial
-    pumpButton.disabled = true;
-    cashoutButton.disabled = true;
-    
-    // Wait and then move to next trial
-    setTimeout(moveToNextTrial, 1500);
-}
-
-// Collect points without popping
-function collectPoints() {
-    if (!gameActive || currentPumps === 0) return;
-    
-    // Update game state
-    gameActive = false;
-    pumpsHistory.push(currentPumps);
-    popHistory.push(false);
-    
-    // Update UI
-    message.textContent = `You collected ${currentPumps} points!`;
-    
-    // Disable buttons
-    pumpButton.disabled = true;
-    cashoutButton.disabled = true;
-    
-    // Wait and then move to next trial
-    setTimeout(moveToNextTrial, 1500);
-}
-
-// Move to the next trial or end game
-function moveToNextTrial() {
-    if (currentTrial < NUM_TRIALS) {
-        startTrial();
-    } else {
-        // Show career aspirations questionnaire
-        gameScreen.style.display = 'none';
-        careerScreen.style.display = 'block';
-    }
-}
-
-// Submit career form and show results
-function submitCareerForm() {
-    // Validate form
-    const position = document.getElementById('current-position').value;
-    const industry = document.getElementById('industry').value;
-    const goals = document.getElementById('career-goals').value;
-    const entrepreneur = document.querySelector('input[name="entrepreneur"]:checked')?.value;
-    const careerValue = document.querySelector('input[name="career-value"]:checked')?.value;
-    const careerChange = document.querySelector('input[name="career-change"]:checked')?.value;
-    const payCut = document.querySelector('input[name="pay-cut"]:checked')?.value;
-    const variableComp = document.querySelector('input[name="variable-comp"]:checked')?.value;
-    const relocate = document.querySelector('input[name="relocate"]:checked')?.value;
-    const newSkills = document.querySelector('input[name="new-skills"]:checked')?.value;
-    
-    if (!position || !industry || !goals || !entrepreneur || !careerValue || 
-        !careerChange || !payCut || !variableComp || !relocate || !newSkills) {
-        alert('Please answer all questions.');
-        return;
-    }
-    
-    // Store career responses
-    careerResponses = {
-        position,
-        industry,
-        goals,
-        entrepreneur,
-        careerValue,
-        careerChangeScore: parseInt(careerChange),
-        payCutScore: parseInt(payCut),
-        variableCompScore: parseInt(variableComp),
-        relocateScore: parseInt(relocate),
-        newSkillsScore: parseInt(newSkills)
-    };
-    
-    // Calculate risk metrics for BART task
-    const bartMetrics = calculateRiskMetrics();
-    
-    // Calculate career risk score
-    const careerRiskScore = calculateCareerRiskScore();
-    
-    // Show results
-    showResults(bartMetrics, careerRiskScore);
-    
-    // Send data to Google Sheets
-    sendResultsToGoogleSheets(bartMetrics, careerRiskScore);
-}
-
-// Calculate risk metrics for BART
-function calculateRiskMetrics() {
-    // Calculate average pumps (all trials)
-    const meanPumpsAllTrials = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
-    
-    // Calculate adjusted pumps (unexploded balloons only)
-    const unexplodedPumps = pumpsHistory.filter((pumps, index) => !popHistory[index]);
-    const meanAdjustedPumps = unexplodedPumps.length > 0 
-        ? unexplodedPumps.reduce((sum, pumps) => sum + pumps, 0) / unexplodedPumps.length 
-        : 0;
-    
-    // Calculate number of explosions
-    const numberOfExplosions = popHistory.filter(popped => popped).length;
-    
-    // Calculate proportion of balloons exploded
-    const proportionExploded = numberOfExplosions / popHistory.length;
-    
-    // Calculate risk aversion score (0-100, higher = more risk averse)
-    // This is the inverse of risk-taking behavior
-    const riskAversionScore = meanAdjustedPumps > 0 
-        ? 100 * (1 - (meanAdjustedPumps / MAX_PUMPS)) 
-        : 100;
-    
-    return {
-        meanPumpsAllTrials,
-        meanAdjustedPumps,
-        numberOfExplosions,
-        proportionExploded,
-        riskAversionScore
-    };
-}
-
-// Calculate career risk score
-function calculateCareerRiskScore() {
-    // Sum Likert scale scores from career risk questions
-    const totalScore = careerResponses.careerChangeScore +
-                       careerResponses.payCutScore +
-                       careerResponses.variableCompScore +
-                       careerResponses.relocateScore +
-                       careerResponses.newSkillsScore;
-    
-    // Entrepreneur bonus (higher score for more entrepreneurial tendencies)
-    let entrepreneurScore = 0;
-    if (careerResponses.entrepreneur === 'yes') {
-        entrepreneurScore = 3;
-    } else if (careerResponses.entrepreneur === 'maybe') {
-        entrepreneurScore = 1;
-    }
-    
-    // Career value adjustment (higher score for valuing opportunity over stability)
-    let careerValueAdjustment = 0;
-    if (careerResponses.careerValue === 'opportunity') {
-        careerValueAdjustment = 2;
-    } else if (careerResponses.careerValue === 'balanced') {
-        careerValueAdjustment = 1;
-    }
-    
-    // Calculate final score
-    const careerRiskScore = totalScore + entrepreneurScore + careerValueAdjustment;
-    
-    // Calculate correlation coefficient (simplified)
-    // Higher BART pumps correlates to lower risk aversion
-    const bartRiskTaking = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
-    
-    // Normalize BART risk-taking to 0-1 scale
-    const normalizedBartRisk = bartRiskTaking / MAX_PUMPS;
-    
-    // Normalize career risk to 0-1 scale (max possible score is 25 + 3 + 2 = 30)
-    const normalizedCareerRisk = careerRiskScore / 30;
-    
-    // Simplified correlation coefficient (difference between normalized scores)
-    // Closer to 0 means higher correlation
-    const correlationCoefficient = Math.abs(normalizedBartRisk - normalizedCareerRisk);
-    
-    // Invert and scale to a -1 to 1 range where 1 is perfect correlation
-    const correlation = 1 - (correlationCoefficient * 2);
-    
-    return {
-        careerRiskScore,
-        correlation,
-        normalizedBartRisk,
-        normalizedCareerRisk
-    };
-}
-
-// Show results screen
-function showResults(bartMetrics, careerRiskScore) {
-    // Update UI
-    careerScreen.style.display = 'none';
-    resultsScreen.style.display = 'block';
-    
-    // Update BART results
-    document.getElementById('risk-score').textContent = bartMetrics.riskAversionScore.toFixed(1);
-    document.getElementById('avg-pumps-all').textContent = bartMetrics.meanPumpsAllTrials.toFixed(2);
-    document.getElementById('avg-pumps-unexploded').textContent = bartMetrics.meanAdjustedPumps.toFixed(2);
-    document.getElementById('num-explosions').textContent = bartMetrics.numberOfExplosions;
-    document.getElementById('prop-explosions').textContent = bartMetrics.proportionExploded.toFixed(2);
-    
-    // Update career risk scores
-    document.getElementById('career-risk-score').innerHTML = `Your career risk-taking score: <span class="result-highlight">${careerRiskScore.careerRiskScore}</span> (out of 30)`;
-    document.getElementById('risk-correlation').innerHTML = `Correlation between BART performance and career risk profile: <span class="result-highlight">${careerRiskScore.correlation.toFixed(2)}</span>`;
-    
-    // Populate results table
-    const resultsTable = document.getElementById('results-table').getElementsByTagName('tbody')[0];
-    resultsTable.innerHTML = '';
-    
-    for (let i = 0; i < pumpsHistory.length; i++) {
-        const row = resultsTable.insertRow();
+        // Google Sheets Script URL - REPLACE THIS WITH YOUR SCRIPT URL
+        const SCRIPT_URL = 'YOUR_GOOGLE_SCRIPT_URL_HERE'; 
         
-        const cellTrial = row.insertCell(0);
-        const cellPumps = row.insertCell(1);
-        const cellOutcome = row.insertCell(2);
+        // Game state
+        let currentTrial = 0;
+        let currentPumps = 0;
+        let pumpsHistory = [];
+        let popHistory = [];
+        let gameActive = false;
+        let participantInfo = {};
+        let careerResponses = {};
         
-        cellTrial.textContent = i + 1;
-        cellPumps.textContent = pumpsHistory[i];
-        cellOutcome.textContent = popHistory[i] ? 'POPPED' : 'COLLECTED';
-    }
-    
-    // Generate interpretation
-    const interpretation = generateInterpretation(bartMetrics, careerRiskScore);
-    document.getElementById('assessment-interpretation').textContent = interpretation;
-}
-
-// Generate interpretation of results
-function generateInterpretation(bartMetrics, careerRiskScore) {
-    let interpretation = '';
-    
-    // Risk aversion interpretation
-    if (bartMetrics.riskAversionScore > 70) {
-        interpretation += 'Your BART performance indicates a highly cautious approach to risk. ';
-    } else if (bartMetrics.riskAversionScore > 40) {
-        interpretation += 'Your BART performance indicates a moderate approach to risk-taking. ';
-    } else {
-        interpretation += 'Your BART performance suggests you are comfortable taking calculated risks. ';
-    }
-    
-    // Career risk interpretation
-    if (careerRiskScore.careerRiskScore > 20) {
-        interpretation += 'Your career aspirations reflect a high willingness to take risks for potential rewards. ';
-    } else if (careerRiskScore.careerRiskScore > 10) {
-        interpretation += 'Your career aspirations reflect a balanced approach to risk and stability. ';
-    } else {
-        interpretation += 'Your career aspirations suggest you prioritize stability and security in your professional life. ';
-    }
-    
-    // Correlation interpretation
-    if (careerRiskScore.correlation > 0.7) {
-        interpretation += 'There appears to be a strong alignment between your behavioral risk tendencies and your career aspirations.';
-    } else if (careerRiskScore.correlation > 0.3) {
-        interpretation += 'There appears to be a moderate alignment between your behavioral risk tendencies and your career aspirations.';
-    } else {
-        interpretation += 'There appears to be some disconnect between how you approach risk in the BART task versus your stated career aspirations.';
-    }
-    
-    return interpretation;
-}
-
-// Send results to Google Sheets
-function sendResultsToGoogleSheets(bartMetrics, careerRiskScore) {
-    // Check if script URL is set
-    if (SCRIPT_URL === 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
-        showStatus('Google Sheets integration not configured. Contact experiment administrator.', 'error');
-        return;
-    }
-    
-    // Prepare data to send
-    const formData = new FormData();
-    
-    // Add participant info
-    formData.append('participantId', participantInfo.id);
-    formData.append('age', participantInfo.age);
-    formData.append('gender', participantInfo.gender);
-    formData.append('education', participantInfo.education);
-    formData.append('timestamp', participantInfo.date);
-    
-    // Add BART metrics
-    formData.append('riskAversionScore', bartMetrics.riskAversionScore.toFixed(2));
-    formData.append('meanPumpsAllTrials', bartMetrics.meanPumpsAllTrials.toFixed(2));
-    formData.append('meanAdjustedPumps', bartMetrics.meanAdjustedPumps.toFixed(2));
-    formData.append('numberOfExplosions', bartMetrics.numberOfExplosions);
-    formData.append('proportionExploded', bartMetrics.proportionExploded.toFixed(2));
-    
-    // Add trial data - explicitly add each trial's data individually
-    for (let i = 0; i < pumpsHistory.length; i++) {
-        formData.append(`trial${i+1}Pumps`, pumpsHistory[i]);
-        formData.append(`trial${i+1}Outcome`, popHistory[i] ? 'POPPED' : 'COLLECTED');
-    }
-    
-    // Add career data
-    formData.append('currentPosition', careerResponses.position);
-    formData.append('industry', careerResponses.industry);
-    formData.append('careerGoals', careerResponses.goals);
-    formData.append('entrepreneur', careerResponses.entrepreneur);
-    formData.append('careerValue', careerResponses.careerValue);
-    formData.append('careerChangeScore', careerResponses.careerChangeScore);
-    formData.append('payCutScore', careerResponses.payCutScore);
-    formData.append('variableCompScore', careerResponses.variableCompScore);
-    formData.append('relocateScore', careerResponses.relocateScore);
-    formData.append('newSkillsScore', careerResponses.newSkillsScore);
-    formData.append('careerRiskScore', careerRiskScore.careerRiskScore);
-    formData.append('riskCorrelation', careerRiskScore.correlation.toFixed(2));
-    
-    // Send data
-    fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors', // Important for CORS issues
-        body: formData
-    })
-    .then(response => {
-        // Since we're using no-cors mode, we can't actually read the response
-        // But we can at least confirm the request was sent
-        showStatus('Results successfully saved to database!', 'success');
-    })
-    .catch(error => {
-        showStatus('There was an error saving your results. Please inform the experiment administrator.', 'error');
-        console.error('Error:', error);
-    });
-}
-
-// Show status message
-function showStatus(message, type) {
-    statusMessage.textContent = message;
-    statusMessage.className = type;
-    statusMessage.style.display = 'block';
-}
-
-// Restart the task
-function restart() {
-    resultsScreen.style.display = 'none';
-    welcomeScreen.style.display = 'block';
-    statusMessage.style.display = 'none';
-}
-
-// Make sure to initialize the game AFTER the DOM is fully loaded
-console.log("Calling init manually...");
-init();
+        // DOM elements
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const careerScreen = document.getElementById('career-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const startButton = document.getElementById('start-button');
+        const pumpButton = document.getElementById('pump-button');
+        const cashoutButton = document.getElementById('cashout-button');
+        const submitCareerButton = document.getElementById('submit-career-button');
+        const restartButton = document.getElementById('restart-button');
+        const balloon = document.getElementById('balloon');
+        const popImage = document.getElementById('pop-image');
+        const message = document.getElementById('message');
+        const pointsMessage = document.getElementById('points-message');
+        const progress = document.getElementById('progress');
+        const statusMessage = document.getElementById('status-message');
+        
+        // Calculate pop probabilities for each pump
+        function initializePopProbabilities() {
+            for (let i = 1; i <= MAX_PUMPS; i++) {
+                // Probability increases with each pump
+                // For simplicity, we use a linear increase model here
+                POP_PROBABILITIES[i] = i / MAX_PUMPS;
+            }
+        }
+        
+        // Initialize the game
+        function init() {
+            initializePopProbabilities();
+            
+            startButton.addEventListener('click', startGame);
+            pumpButton.addEventListener('click', pumpBalloon);
+            cashoutButton.addEventListener('click', collectPoints);
+            submitCareerButton.addEventListener('click', submitCareerForm);
+            restartButton.addEventListener('click', restart);
+        }
+        
+        // Start the game
+        function startGame() {
+            // Validate form
+            const participantId = document.getElementById('participant-id').value;
+            const age = document.getElementById('age').value;
+            const gender = document.getElementById('gender').value;
+            const education = document.getElementById('education').value;
+            
+            if (!participantId || !age || !gender || !education) {
+                alert('Please fill out all fields.');
+                return;
+            }
+            
+            // Store participant info
+            participantInfo = {
+                id: participantId,
+                age: age,
+                gender: gender,
+                education: education,
+                date: new Date().toISOString().slice(0, 19).replace('T', ' ')
+            };
+            
+            // Reset game state
+            currentTrial = 0;
+            currentPumps = 0;
+            pumpsHistory = [];
+            popHistory = [];
+            
+            // Show game screen
+            welcomeScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            
+            // Start first trial
+            startTrial();
+        }
+        
+        // Start a new trial
+        function startTrial() {
+            currentPumps = 0;
+            gameActive = true;
+            
+            // Update UI
+            currentTrial++;
+            message.textContent = `Trial ${currentTrial} of ${NUM_TRIALS}`;
+            pointsMessage.textContent = `Points for this balloon: 0`;
+            
+            // Reset balloon
+            balloon.style.width = '100px';
+            balloon.style.height = '150px';
+            balloon.style.display = 'block';
+            popImage.style.display = 'none';
+            
+            // Update progress bar
+            const progressPercentage = ((currentTrial - 1) / NUM_TRIALS) * 100;
+            progress.style.width = `${progressPercentage}%`;
+            progress.textContent = `${Math.round(progressPercentage)}%`;
+            
+            // Enable buttons
+            pumpButton.disabled = false;
+            cashoutButton.disabled = false;
+        }
+        
+        // Pump the balloon
+        function pumpBalloon() {
+            if (!gameActive) return;
+            
+            currentPumps++;
+            
+            // Check if balloon pops
+            const popProbability = POP_PROBABILITIES[currentPumps];
+            const randomValue = Math.random();
+            
+            if (randomValue < popProbability) {
+                // Balloon pops
+                popBalloon();
+            } else {
+                // Balloon gets bigger
+                const newSize = 100 + (currentPumps * 3);
+                balloon.style.width = `${newSize}px`;
+                balloon.style.height = `${newSize * 1.5}px`;
+                
+                // Update points message
+                pointsMessage.textContent = `Points for this balloon: ${currentPumps}`;
+            }
+        }
+        
+        // Pop the balloon
+        function popBalloon() {
+            // Update game state
+            gameActive = false;
+            pumpsHistory.push(currentPumps);
+            popHistory.push(true);
+            
+            // Update UI
+            balloon.style.display = 'none';
+            popImage.style.display = 'block';
+            message.textContent = 'BALLOON POPPED! Points lost.';
+            pointsMessage.textContent = 'Points for this balloon: 0';
+            
+            // Play pop sound effect
+            try {
+                const popSound = new Audio('data:audio/wav;base64,//uQRAAAAWMSLwUIYAAsYkXgoQwAEaYLWfkWgAI0wWs/ItAAAGDgYtAgAyN+QWaAAihwMWm4G8QQRDiMcCBcH3Cc+CDv/7xA4Tvh9Rz/y8QADBwMWgQAZG/ILNAARQ4GLTcDeIIIhxGOBAuD7hOfBB3/94gcJ3w+o5/5eIAIAAAVwWgQAVQ2ORaIQwEMAJiDg95G4nQL7mQVWI6GwRcfsZAcsKkJvxgxEjzFUgfHoSQ9Qq7KNwqHwuB13MA4a1q/DmBrHgPcmjiGoh//EwC5nGPEmS4RcfkVKOhJf+WOgoxJclFz3kgn//dBA+ya1GhurNn8zb//9NNutNuhz31f////9vt///z+IdAEAAAK4LQIAKobHItEIYCGAExBwe8jcToF9zIKrEdDYIuP2MgOWFSE34wYiR5iqQPj0JIeoVdlG4VD4XA67mAcNa1fhzA1jwHuTRxDUQ//iYBczjHiTJcIuPyKlHQkv/LHQUYkuSi57yQT//uggfZNajQ3Vm//Ybnzdk//+h//8/KVdbDuJ3///8//Wvxm1t7lIAaKGYcRH//UCClCxLkzExb3Iap/3Nv10/8Mrrfn1yQj4/Yb+Eg/MhHvvYEeqYuJTmvCr7xyUWD0OLmb9lItk/17Wfj0P9/vbOTt7uIztpJGC//b0WvCn3z2MjFBUxBRKjSJRrxv1emffz//zvfXuWEAAAABD9wvpSgA==');
+                popSound.play();
+            } catch (e) {
+                console.error("Audio error:", e);
+            }
+            
+            // Disable pump button, enable cashout for next trial
+            pumpButton.disabled = true;
+            cashoutButton.disabled = true;
+            
+            // Wait and then move to next trial
+            setTimeout(moveToNextTrial, 1500);
+        }
+        
+        // Collect points without popping
+        function collectPoints() {
+            if (!gameActive || currentPumps === 0) return;
+            
+            // Update game state
+            gameActive = false;
+            pumpsHistory.push(currentPumps);
+            popHistory.push(false);
+            
+            // Update UI
+            message.textContent = `You collected ${currentPumps} points!`;
+            
+            // Disable buttons
+            pumpButton.disabled = true;
+            cashoutButton.disabled = true;
+            
+            // Wait and then move to next trial
+            setTimeout(moveToNextTrial, 1500);
+        }
+        
+        // Move to the next trial or end game
+        function moveToNextTrial() {
+            if (currentTrial < NUM_TRIALS) {
+                startTrial();
+            } else {
+                // Show career aspirations questionnaire
+                gameScreen.style.display = 'none';
+                careerScreen.style.display = 'block';
+            }
+        }// Submit career form and show results
+        function submitCareerForm() {
+            // Validate form
+            const position = document.getElementById('current-position').value;
+            const industry = document.getElementById('industry').value;
+            const goals = document.getElementById('career-goals').value;
+            const entrepreneur = document.querySelector('input[name="entrepreneur"]:checked')?.value;
+            const careerValue = document.querySelector('input[name="career-value"]:checked')?.value;
+            const careerChange = document.querySelector('input[name="career-change"]:checked')?.value;
+            const payCut = document.querySelector('input[name="pay-cut"]:checked')?.value;
+            const variableComp = document.querySelector('input[name="variable-comp"]:checked')?.value;
+            const relocate = document.querySelector('input[name="relocate"]:checked')?.value;
+            const newSkills = document.querySelector('input[name="new-skills"]:checked')?.value;
+            
+            if (!position || !industry || !goals || !entrepreneur || !careerValue || 
+                !careerChange || !payCut || !variableComp || !relocate || !newSkills) {
+                alert('Please answer all questions.');
+                return;
+            }
+            
+            // Store career responses
+            careerResponses = {
+                position,
+                industry,
+                goals,
+                entrepreneur,
+                careerValue,
+                careerChangeScore: parseInt(careerChange),
+                payCutScore: parseInt(payCut),
+                variableCompScore: parseInt(variableComp),
+                relocateScore: parseInt(relocate),
+                newSkillsScore: parseInt(newSkills)
+            };
+            
+            // Calculate risk metrics for BART task
+            const bartMetrics = calculateRiskMetrics();
+            
+            // Calculate career risk score
+            const careerRiskScore = calculateCareerRiskScore();
+            
+            // Show results
+            showResults(bartMetrics, careerRiskScore);
+            
+            // Send data to Google Sheets
+            sendResultsToGoogleSheets(bartMetrics, careerRiskScore);
+        }
+        
+        // Calculate risk metrics for BART
+        function calculateRiskMetrics() {
+            // Calculate average pumps (all trials)
+            const meanPumpsAllTrials = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
+            
+            // Calculate adjusted pumps (unexploded balloons only)
+            const unexplodedPumps = pumpsHistory.filter((pumps, index) => !popHistory[index]);
+            const meanAdjustedPumps = unexplodedPumps.length > 0 
+                ? unexplodedPumps.reduce((sum, pumps) => sum + pumps, 0) / unexplodedPumps.length 
+                : 0;
+            
+            // Calculate number of explosions
+            const numberOfExplosions = popHistory.filter(popped => popped).length;
+            
+            // Calculate proportion of balloons exploded
+            const proportionExploded = numberOfExplosions / popHistory.length;
+            
+            // Calculate risk aversion score (0-100, higher = more risk averse)
+            // This is the inverse of risk-taking behavior
+            const riskAversionScore = meanAdjustedPumps > 0 
+                ? 100 * (1 - (meanAdjustedPumps / MAX_PUMPS)) 
+                : 100;
+            
+            return {
+                meanPumpsAllTrials,
+                meanAdjustedPumps,
+                numberOfExplosions,
+                proportionExploded,
+                riskAversionScore
+            };
+        }
+        
+        // Calculate career risk score
+        function calculateCareerRiskScore() {
+            // Sum Likert scale scores from career risk questions
+            const totalScore = careerResponses.careerChangeScore +
+                               careerResponses.payCutScore +
+                               careerResponses.variableCompScore +
+                               careerResponses.relocateScore +
+                               careerResponses.newSkillsScore;
+            
+            // Entrepreneur bonus (higher score for more entrepreneurial tendencies)
+            let entrepreneurScore = 0;
+            if (careerResponses.entrepreneur === 'yes') {
+                entrepreneurScore = 3;
+            } else if (careerResponses.entrepreneur === 'maybe') {
+                entrepreneurScore = 1;
+            }
+            
+            // Career value adjustment (higher score for valuing opportunity over stability)
+            let careerValueAdjustment = 0;
+            if (careerResponses.careerValue === 'opportunity') {
+                careerValueAdjustment = 2;
+            } else if (careerResponses.careerValue === 'balanced') {
+                careerValueAdjustment =// Calculate career risk score
+        function calculateCareerRiskScore() {
+            // Sum Likert scale scores from career risk questions
+            const totalScore = careerResponses.careerChangeScore +
+                               careerResponses.payCutScore +
+                               careerResponses.variableCompScore +
+                               careerResponses.relocateScore +
+                               careerResponses.newSkillsScore;
+            
+            // Entrepreneur bonus (higher score for more entrepreneurial tendencies)
+            let entrepreneurScore = 0;
+            if (careerResponses.entrepreneur === 'yes') {
+                entrepreneurScore = 3;
+            } else if (careerResponses.entrepreneur === 'maybe') {
+                entrepreneurScore = 1;
+            }
+            
+            // Career value adjustment (higher score for valuing opportunity over stability)
+            let careerValueAdjustment = 0;
+            if (careerResponses.careerValue === 'opportunity') {
+                careerValueAdjustment = 2;
+            } else if (careerResponses.careerValue === 'balanced') {
+                careerValueAdjustment = 1;
+            }
+            
+            // Calculate final score
+            const careerRiskScore = totalScore + entrepreneurScore + careerValueAdjustment;
+            
+            // Calculate correlation coefficient (simplified)
+            // Higher BART pumps correlates to lower risk aversion
+            const bartRiskTaking = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
+            
+            // Normalize BART risk-taking to 0-1 scale
+            const normalizedBartRisk = bartRiskTaking / MAX_PUMPS;
+            
+            // Normalize career risk to 0-1 scale (max possible score is 25 + 3 + 2 = 30)
+            const normalizedCareerRisk = careerRiskScore / 30;
+            
+            // Simplified correlation coefficient (difference between normalized scores)
+            // Closer to 0 means higher correlation
+            const correlationCoefficient = Math.abs(normalizedBartRisk - normalizedCareerRisk);
+            
+            // Invert and scale to a -1 to 1 range where 1 is perfect correlation
+            const correlation = 1 - (correlationCoefficient * 2);
+            
+            return {
+                careerRiskScore,
+                correlation,
+                normalizedBartRisk,
+                normalizedCareerRisk
+            };
+        }
+        
+        // Show results screen
+        function showResults(bartMetrics, careerRiskScore) {
+            // Update UI
+            careerScreen.style.display = 'none';
+            resultsScreen.style.display = 'block';
+            
+            // Update BART results
+            document.getElementById('risk-score').textContent = bartMetrics.riskAversionScore.toFixed(1);
+            document.getElementById('avg-pumps-all').textContent = bartMetrics.meanPumpsAllTrials.toFixed(2);
+            document.getElementById('avg-pumps-unexploded').textContent = bartMetrics.meanAdjustedPumps.toFixed(2);
+            document.getElementById('num-explosions').textContent = bartMetrics.numberOfExplosions;
+            document.getElementById('prop-explosions').textContent = bartMetrics.proportionExploded.toFixed(2);
+            
+            // Update career risk scores
+            document.getElementById('career-risk-score').innerHTML = `Your career risk-taking score: <span class="result-highlight">${careerRiskScore.careerRiskScore}</span> (out of 30)`;
+            document.getElementById('risk-correlation').innerHTML = `Correlation between BART performance and career risk profile: <span class="result-highlight">${careerRiskScore.correlation.toFixed(2)}</span>`;
+            
+            // Populate results table
+            const resultsTable = document.getElementById('results-table').getElementsByTagName('tbody')[0];
+            resultsTable.innerHTML = '';
+            
+            for (let i = 0; i < pumpsHistory.length; i++) {
+                const row = resultsTable.insertRow();
+                
+                const cellTrial = row.insertCell(0);
+                const cellPumps = row.insertCell(1);
+                const cellOutcome = row.insertCell(2);
+                
+                cellTrial.textContent = i + 1;
+                cellPumps.textContent = pumpsHistory[i];
+                cellOutcome.textContent = popHistory[i] ? 'POPPED' : 'COLLECTED';
+            }
+            
+            // Generate interpretation
+            const interpretation = generateInterpretation(bartMetrics, careerRiskScore);
+            document.getElementById('assessment-interpretation').textContent = interpretation;
+        }
+        
+        // Generate interpretation of results
+        function generateInterpretation(bartMetrics, careerRiskScore) {
+            let interpretation = '';
+            
+            // Risk aversion interpretation
+            if (bartMetrics.riskAversionScore > 70) {
+                interpretation += 'Your BART performance indicates a highly cautious approach to risk. ';
+            } else if (bartMetrics.riskAversionScore > 40) {
+                interpretation += 'Your BART performance indicates a moderate approach to risk-taking. ';
+            } else {
+                interpretation += 'Your BART performance suggests you are comfortable taking calculated risks. ';
+            }
+            
+            // Career risk interpretation
+            if (careerRiskScore.careerRiskScore > 20) {
+                interpretation += 'Your career aspirations reflect a high willingness to take risks for potential rewards. ';
+            } else if (careerRiskScore.careerRiskScore > 10) {
+                interpretation += 'Your career aspirations reflect a balanced approach to risk and stability. ';
+            } else {
+                interpretation += 'Your career aspirations suggest you prioritize stability and security in your professional life. ';
+            }
+            
+            // Correlation interpretation
+            if (careerRiskScore.correlation > 0.7) {
+                interpretation += 'There appears to be a strong alignment between your behavioral risk tendencies and your career aspirations.';
+            } else if (careerRiskScore.correlation > 0.3) {
+                interpretation += 'There appears to be a moderate alignment between your behavioral risk tendencies and your career aspirations.';
+            } else {
+                interpretation += 'There appears to be some disconnect between how you approach risk in the BART task versus your stated career aspirations.';
+            }
+            
+            return interpretation;
+        }
+        
+        // Send results to Google Sheets
+        function sendResultsToGoogleSheets(bartMetrics, careerRiskScore) {
+            // Check if script URL is set
+            if (SCRIPT_URL === 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
+                showStatus('Google Sheets integration not configured. Contact experiment administrator.', 'error');
+                return;
+            }
+            
+            // Prepare data to send
+            const formData = new FormData();
+            
+            // Add participant info
+            formData.append('participantId', participantInfo.id);
+            formData.append('age', participantInfo.age);
+            formData.append('gender', participantInfo.gender);
+            formData.append('education', participantInfo.education);
+            formData.append('timestamp', participantInfo.date);
+            
+            // Add BART metrics
+            formData.append('riskAversionScore', bartMetrics.riskAversionScore.toFixed(2));
+            formData.append('meanPumpsAllTrials', bartMetrics.meanPumpsAllTrials.toFixed(2));
+            formData.append('meanAdjustedPumps', bartMetrics.meanAdjustedPumps.toFixed(2));
+            formData.append('numberOfExplosions', bartMetrics.numberOfExplosions);
+            formData.append('proportionExploded', bartMetrics.proportionExploded.toFixed(2));
+            
+            // Add trial data - explicitly add each trial's data individually
+            for (let i = 0; i < pumpsHistory.length; i++) {
+                formData.append(`trial${i+1}Pumps`, pumpsHistory[i]);
+                formData.append(`trial${i+1}Outcome`, popHistory[i] ? 'POPPED' : 'COLLECTED');
+            }
+            
+            // Add career data
+            formData.append('currentPosition', careerResponses.position);
+            formData.append('industry', careerResponses.industry);
+            formData.append('careerGoals', careerResponses.goals);
+            formData.append('entrepreneur', careerResponses.entrepreneur);
+            formData.append('careerValue', careerResponses.careerValue);
+            formData.append('careerChangeScore', careerResponses.careerChangeScore);
+            formData.append('payCutScore', careerResponses.payCutScore);
+            formData.append('variableCompScore', careerResponses.variableCompScore);
+            formData.append('relocateScore', careerResponses.relocateScore);
+            formData.append('newSkillsScore', careerResponses.newSkillsScore);
+            formData.append('careerRiskScore', careerRiskScore.careerRiskScore);
+            formData.append('riskCorrelation', careerRiskScore.correlation.toFixed(2));
+            
+            // Send data
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Important for CORS issues
+                body: formData
+            })
+            .then(response => {
+                // Since we're using no-cors mode, we can't actually read the response
+                // But we can at least confirm the request was sent
+                showStatus('Results successfully saved to database!', 'success');
+            })
+            .catch(error => {
+                showStatus('There was an error saving your results. Please inform the experiment administrator.', 'error');
+                console.error('Error:', error);
+            });
+        }
+        
+        // Show status message
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = type;
+            statusMessage.style.display = 'block';
+        }
+        
+        // Restart the task
+        function restart() {
+            resultsScreen.style.display = 'none';
+            welcomeScreen.style.display = 'block';
+            statusMessage.style.display = 'none';
+        }
+        
+        // Initialize the game when page loads
+        window.onload = init;
+    </script>
+</body>
+</html>
