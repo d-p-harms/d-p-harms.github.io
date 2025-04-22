@@ -875,22 +875,44 @@ function popBalloon() {
 
 // Fix 2: Update the calculateRiskMetrics function to include meanAdjustedPumps
 function calculateRiskMetrics() {
+    // Calculate basic metrics
     const meanPumpsAllTrials = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
-
+    
     // Calculate mean adjusted pumps (only for unexploded balloons)
     const unexplodedTrials = pumpsHistory.filter((pumps, index) => !popHistory[index]);
     const meanAdjustedPumps = unexplodedTrials.length > 0 
         ? unexplodedTrials.reduce((sum, pumps) => sum + pumps, 0) / unexplodedTrials.length 
         : 0;
-
+    
+    // Count explosions - a key risk indicator
     const numberOfExplosions = popHistory.filter(popped => popped).length;
     const proportionExploded = numberOfExplosions / popHistory.length;
-
-    const riskAversionScore = 100 * (1 - (meanPumpsAllTrials / MAX_PUMPS));
-
+    
+    // Calculate typical baseline for comparison (research suggests 30-40 pumps is typical average)
+    const typicalPumpsBaseline = 35;
+    const maxReasonablePumps = 64; // Set a more realistic maximum than 128
+    
+    // New risk aversion formula that factors in:
+    // 1. Pumps relative to a realistic maximum (not the theoretical 128)
+    // 2. Explosion proportion (higher weight)
+    // 3. Difference from typical behavior
+    
+    // First calculate risk-taking score (0-100)
+    const riskTakingScore = (
+        // 40% weight: Pumps relative to reasonable maximum
+        (40 * (meanPumpsAllTrials / maxReasonablePumps)) + 
+        // 40% weight: Explosion proportion (directly measures risk)
+        (40 * proportionExploded) +
+        // 20% weight: How much above typical baseline (if positive)
+        (20 * Math.max(0, (meanPumpsAllTrials - typicalPumpsBaseline) / typicalPumpsBaseline))
+    );
+    
+    // Convert to risk aversion score (100 = most cautious, 0 = most risky)
+    const riskAversionScore = 100 - Math.min(100, riskTakingScore);
+    
     return {
         meanPumpsAllTrials,
-        meanAdjustedPumps,  // Add this missing property
+        meanAdjustedPumps,
         numberOfExplosions,
         proportionExploded,
         riskAversionScore
@@ -979,37 +1001,39 @@ function calculateRiskMetrics() {
         
         // Generate interpretation of results
         function generateInterpretation(bartMetrics, careerRiskScore) {
-            let interpretation = '';
-            
-            // Risk aversion interpretation
-            if (bartMetrics.riskAversionScore > 70) {
-                interpretation += 'Your BART performance indicates a highly cautious approach to risk. ';
-            } else if (bartMetrics.riskAversionScore > 40) {
-                interpretation += 'Your BART performance indicates a moderate approach to risk-taking. ';
-            } else {
-                interpretation += 'Your BART performance suggests you are comfortable taking calculated risks. ';
-            }
-            
-            // Career risk interpretation
-            if (careerRiskScore.careerRiskScore > 20) {
-                interpretation += 'Your career aspirations reflect a high willingness to take risks for potential rewards. ';
-            } else if (careerRiskScore.careerRiskScore > 10) {
-                interpretation += 'Your career aspirations reflect a balanced approach to risk and stability. ';
-            } else {
-                interpretation += 'Your career aspirations suggest you prioritize stability and security in your professional life. ';
-            }
-            
-            // Correlation interpretation
-            if (careerRiskScore.correlation > 0.7) {
-                interpretation += 'There appears to be a strong alignment between your behavioral risk tendencies and your career aspirations.';
-            } else if (careerRiskScore.correlation > 0.3) {
-                interpretation += 'There appears to be a moderate alignment between your behavioral risk tendencies and your career aspirations.';
-            } else {
-                interpretation += 'There appears to be some disconnect between how you approach risk in the BART task versus your stated career aspirations.';
-            }
-            
-            return interpretation;
-        }
+    let interpretation = '';
+    
+    // Risk aversion interpretation with better thresholds
+    if (bartMetrics.riskAversionScore > 75) {
+        interpretation += 'Your BART performance indicates a highly cautious approach to risk. ';
+    } else if (bartMetrics.riskAversionScore > 50) {
+        interpretation += 'Your BART performance indicates a moderately cautious approach to risk. ';
+    } else if (bartMetrics.riskAversionScore > 25) {
+        interpretation += 'Your BART performance indicates a balanced approach to risk-taking. ';
+    } else {
+        interpretation += 'Your BART performance suggests you take an aggressive approach to risk, willing to accept potential losses for higher rewards. ';
+    }
+    
+    // Career risk interpretation (unchanged)
+    if (careerRiskScore.careerRiskScore > 20) {
+        interpretation += 'Your career aspirations reflect a high willingness to take risks for potential rewards. ';
+    } else if (careerRiskScore.careerRiskScore > 10) {
+        interpretation += 'Your career aspirations reflect a balanced approach to risk and stability. ';
+    } else {
+        interpretation += 'Your career aspirations suggest you prioritize stability and security in your professional life. ';
+    }
+    
+    // Correlation interpretation (unchanged)
+    if (careerRiskScore.correlation > 0.7) {
+        interpretation += 'There appears to be a strong alignment between your behavioral risk tendencies and your career aspirations.';
+    } else if (careerRiskScore.correlation > 0.3) {
+        interpretation += 'There appears to be a moderate alignment between your behavioral risk tendencies and your career aspirations.';
+    } else {
+        interpretation += 'There appears to be some disconnect between how you approach risk in the BART task versus your stated career aspirations.';
+    }
+    
+    return interpretation;
+}
         
         // Send results to Google Sheets
         function sendResultsToGoogleSheets(bartMetrics, careerRiskScore) {
