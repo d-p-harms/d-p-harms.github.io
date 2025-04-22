@@ -877,14 +877,11 @@
             const meanPumpsAllTrials = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
             
             // Calculate adjusted pumps (unexploded balloons only)
-            const unexplodedPumps = pumpsHistory.filter((pumps, index) => !popHistory[index]);
-            const meanAdjustedPumps = unexplodedPumps.length > 0 
-                ? unexplodedPumps.reduce((sum, pumps) => sum + pumps, 0) / unexplodedPumps.length 
-                : 0;
-            
-            // Calculate number of explosions
-            const numberOfExplosions = popHistory.filter(popped => popped).length;
-            
+            const meanPumpsAllTrials = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
+
+// Use this for risk aversion score instead
+            const riskAversionScore = 100 * (1 - (meanPumpsAllTrials / MAX_PUMPS));
+
             // Calculate proportion of balloons exploded
             const proportionExploded = numberOfExplosions / popHistory.length;
             
