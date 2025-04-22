@@ -288,7 +288,7 @@
                 <div id="pop-image"></div>
             </div>
             
-            <div id="message">Trial 1 of 5</div>
+            <div id="message">Trial 1 of 10</div>
             <div id="points-message">Points for this balloon: 0</div>
             <div id="instructions">Press "Pump" to inflate the balloon or "Collect Points" to bank your current points</div>
             
@@ -634,43 +634,9 @@
     </div>
     <script>
     // BART Task Configuration
-const MAX_PUMPS = 128;  // Maximum possible pumps per balloon
-const NUM_TRIALS = 10;   // Total number of balloons
-const POP_PROBABILITIES = [];  // Will be calculated on initialization
-
-// Calculate pop probabilities for each pump - redesigned for longer play
-function initializePopProbabilities() {
-    // First 15 pumps have extremely low probability (almost safe zone)
-    for (let i = 1; i <= 15; i++) {
-        POP_PROBABILITIES[i] = 0.01; // Fixed 1% chance
-    }
-    
-    // Pumps 16-30 have gradually increasing but still low probability
-    for (let i = 16; i <= 30; i++) {
-        // Gradually increase from 1% to 5%
-        POP_PROBABILITIES[i] = 0.01 + (i - 15) * 0.003;
-    }
-    
-    // Pumps 31-60 have moderate probability
-    for (let i = 31; i <= 60; i++) {
-        // Gradually increase from 5% to 15%
-        POP_PROBABILITIES[i] = 0.05 + (i - 30) * 0.0033;
-    }
-    
-    // Pumps 61+ have higher probability
-    for (let i = 61; i <= MAX_PUMPS; i++) {
-        // Gradually increase from 15% to 60% at the maximum
-        POP_PROBABILITIES[i] = 0.15 + (i - 60) * 0.0066;
-    }
-    
-    // Log some sample probabilities for verification
-    console.log("Pump 5 probability:", POP_PROBABILITIES[5]);
-    console.log("Pump 20 probability:", POP_PROBABILITIES[20]);
-    console.log("Pump 40 probability:", POP_PROBABILITIES[40]);
-    console.log("Pump 80 probability:", POP_PROBABILITIES[80]);
-}
-    // Google Sheets Script URL - REPLACE THIS WITH YOUR SCRIPT URL
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyJMxpRPLv0C1YM4liLZFgcJcoySz_C0XeNp2xLzanePTubN7HA1gqLaJg488MaHn7/exec'; 
+    const MAX_PUMPS = 128;  // Maximum possible pumps per balloon
+    const NUM_TRIALS = 10;   // Total number of balloons
+    const POP_PROBABILITIES = [];  // Will be calculated on initialization
     
     // Game state
     let totalPoints = 0;
@@ -699,15 +665,35 @@ function initializePopProbabilities() {
     const progress = document.getElementById('progress');
     const statusMessage = document.getElementById('status-message');
     
-    // Calculate pop probabilities for each pump
+    // Calculate pop probabilities for each pump - with complex probability distribution
     function initializePopProbabilities() {
-        for (let i = 1; i <= MAX_PUMPS; i++) {
-            // Probability increases with each pump
-            // For simplicity, we use a linear increase model here
-            POP_PROBABILITIES[i] = i / MAX_PUMPS;
+        // First 15 pumps have extremely low probability (almost safe zone)
+        for (let i = 1; i <= 15; i++) {
+            POP_PROBABILITIES[i] = 0.01; // Fixed 1% chance
+        }
+        
+        // Pumps 16-30 have gradually increasing but still low probability
+        for (let i = 16; i <= 30; i++) {
+            // Gradually increase from 1% to 5%
+            POP_PROBABILITIES[i] = 0.01 + (i - 15) * 0.003;
+        }
+        
+        // Pumps 31-60 have moderate probability
+        for (let i = 31; i <= 60; i++) {
+            // Gradually increase from 5% to 15%
+            POP_PROBABILITIES[i] = 0.05 + (i - 30) * 0.0033;
+        }
+        
+        // Pumps 61+ have higher probability
+        for (let i = 61; i <= MAX_PUMPS; i++) {
+            // Gradually increase from 15% to 60% at the maximum
+            POP_PROBABILITIES[i] = 0.15 + (i - 60) * 0.0066;
         }
     }
     
+    // Google Sheets Script URL - REPLACE THIS WITH YOUR SCRIPT URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyJMxpRPLv0C1YM4liLZFgcJcoySz_C0XeNp2xLzanePTubN7HA1gqLaJg488MaHn7/exec';
+     
     // Generate a unique ID
     function generateUniqueID() {
         return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -775,6 +761,8 @@ function initializePopProbabilities() {
             if (event.key === ' ' || event.key === 'ArrowUp') {
                 // Space or Up Arrow = Pump
                 if (!pumpButton.disabled) {
+                    // Prevent default to stop page scrolling
+                    event.preventDefault();
                     // Add visual feedback
                     pumpButton.classList.add('keyboard-active');
                     setTimeout(() => pumpButton.classList.remove('keyboard-active'), 100);
@@ -783,6 +771,8 @@ function initializePopProbabilities() {
             } else if (event.key === 'Enter' || event.key === 'ArrowDown') {
                 // Enter or Down Arrow = Collect
                 if (!cashoutButton.disabled) {
+                    // Prevent default to stop page scrolling
+                    event.preventDefault();
                     // Add visual feedback
                     cashoutButton.classList.add('keyboard-active');
                     setTimeout(() => cashoutButton.classList.remove('keyboard-active'), 100);
@@ -903,8 +893,6 @@ function initializePopProbabilities() {
         message.textContent = 'BALLOON POPPED! Points lost.';
         pointsMessage.textContent = 'Points for this balloon: 0';
         
-        console.log("Pop sound would play here");
-        
         // Disable pump button, enable cashout for next trial
         pumpButton.disabled = true;
         cashoutButton.disabled = true;
@@ -1004,13 +992,8 @@ function initializePopProbabilities() {
         // Calculate adjusted pumps (only for unexploded balloons)
         const unexplodedTrials = pumpsHistory.filter((pumps, index) => !popHistory[index]);
         const meanAdjustedPumps = unexplodedTrials.length > 0 
-            ? unexplodedTrials.reduce((sum, pumps) => sum + pumps, 0) / unexplodedTrials.length 
+            ? unexplodedTrials.reduce((sum, pumps) => sum + pumps, 0) / unexplodedTrials.length
             : 0;
-        
-        // ULTRA SIMPLE RISK SCORING:
-        // If you popped 4-5 out of 5 balloons = very high risk-taking (low risk aversion)
-        // If you popped 2-3 out of 5 balloons = moderate risk-taking
-        // If you popped 0-1 out of 5 balloons = low risk-taking (high risk aversion)
         
         // Calculate risk-taking score (0-100)
         let riskTakingScore = 0;
@@ -1073,10 +1056,6 @@ function initializePopProbabilities() {
         
         const careerRiskScore = totalScore + entrepreneurScore + careerValueAdjustment;
         
-        // FIXED CORRELATION CALCULATION:
-        // Now we'll use the risk-taking scores (not risk aversion) for both metrics
-        // This ensures high risk in BART and high risk in career show high correlation
-        
         // Get BART risk metric (use explosion proportion as primary indicator)
         const bartRiskMetric = popHistory.filter(popped => popped).length / popHistory.length;
         
@@ -1119,7 +1098,7 @@ function initializePopProbabilities() {
         else riskLabel = 'LOW RISK';
         
         // Update results summary with risk label
-        document.getElementById('results-summary').innerHTML = 
+        document.getElementById('results-summary').innerHTML =
             `<p>Your risk aversion score: <span id="risk-score" class="result-highlight">${bartMetrics.riskAversionScore.toFixed(1)}</span> (0-100)</p>
              <p>Your risk behavior category: <span class="result-highlight">${riskLabel}</span></p>
              <p>Higher risk aversion scores indicate more cautious behavior.</p>`;
@@ -1205,7 +1184,7 @@ function initializePopProbabilities() {
             interpretation += 'Your career aspirations suggest you prioritize stability and security in your professional life. ';
         }
         
-        // FIXED correlation interpretation
+        // Correlation interpretation
         if (careerRiskScore.correlation > 0.7) {
             interpretation += 'There appears to be a strong alignment between your behavioral risk tendencies and your career aspirations.';
         } else if (careerRiskScore.correlation > 0.3) {
@@ -1219,8 +1198,8 @@ function initializePopProbabilities() {
     
     // Send results to Google Sheets
     function sendResultsToGoogleSheets(bartMetrics, careerRiskScore) {
-        // Check if script URL is set
-        if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbw5e9wiyVbTLGpINg4tTpu1WGPKkmxg4KHPI-dl2QenByj-vlx70Vb3ZZqtBVw3Q6Kf/exec') {
+        // Check if script URL is set - don't check for a specific value
+        if (!SCRIPT_URL || SCRIPT_URL.trim() === '') {
             showStatus('Google Sheets integration not configured. Contact experiment administrator.', 'error');
             return;
         }
@@ -1301,5 +1280,3 @@ function initializePopProbabilities() {
     // Initialize the game when page loads
     window.onload = init;
     </script>
-</body>
-</html>
