@@ -747,9 +747,64 @@ function moveToNextTrial() {
             }
         }
         
-        // Initialize the game
+// Initialize the game
         function init() {
             initializePopProbabilities();
+            
+            // Generate or retrieve unique user ID
+            checkForExistingUser();
+            
+            startButton.addEventListener('click', startGame);
+            pumpButton.addEventListener('click', pumpBalloon);
+            cashoutButton.addEventListener('click', collectPoints);
+            submitCareerButton.addEventListener('click', submitCareerForm);
+            restartButton.addEventListener('click', restart);
+        }
+        
+        // Generate a unique ID
+        function generateUniqueID() {
+            return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        // Check if user already has an ID stored
+        function checkForExistingUser() {
+            let userID = localStorage.getItem('risk_assessment_user_id');
+            let lastSubmissionDate = localStorage.getItem('risk_assessment_last_submission');
+            
+            if (!userID) {
+                // First time visitor - generate and store a new ID
+                userID = generateUniqueID();
+                localStorage.setItem('risk_assessment_user_id', userID);
+                
+                // Pre-fill the participant ID field
+                document.getElementById('participant-id').value = userID;
+                document.getElementById('participant-id').readOnly = true;
+            } else {
+                // Returning user - use the existing ID
+                document.getElementById('participant-id').value = userID;
+                document.getElementById('participant-id').readOnly = true;
+                
+                // Check if they've already submitted data
+                if (lastSubmissionDate) {
+                    const lastSubmission = new Date(lastSubmissionDate);
+                    const currentDate = new Date();
+                    const daysSinceSubmission = Math.floor((currentDate - lastSubmission) / (1000 * 60 * 60 * 24));
+                    
+                    // Show a message if they've already submitted recently
+                    if (daysSinceSubmission < 7) {
+                        const warningMessage = document.createElement('div');
+                        warningMessage.style.backgroundColor = '#fff3cd';
+                        warningMessage.style.color = '#856404';
+                        warningMessage.style.padding = '10px';
+                        warningMessage.style.borderRadius = '5px';
+                        warningMessage.style.marginBottom = '15px';
+                        warningMessage.innerHTML = `<strong>Notice:</strong> It appears you've already completed this assessment within the past week (${daysSinceSubmission} days ago). Multiple submissions from the same participant may affect our research data. Please proceed only if instructed to do so by the researcher.`;
+                        
+                        welcomeScreen.insertBefore(warningMessage, document.getElementById('info-form'));
+                    }
+                }
+            }
+        }
             
             startButton.addEventListener('click', startGame);
             pumpButton.addEventListener('click', pumpBalloon);
