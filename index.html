@@ -905,81 +905,43 @@
         
         // Calculate career risk score
         function calculateCareerRiskScore() {
-            // Sum Likert scale scores from career risk questions
-            const totalScore = careerResponses.careerChangeScore +
-                               careerResponses.payCutScore +
-                               careerResponses.variableCompScore +
-                               careerResponses.relocateScore +
-                               careerResponses.newSkillsScore;
-            
-            // Entrepreneur bonus (higher score for more entrepreneurial tendencies)
-           // Career value adjustment (higher score for valuing opportunity over stability)
-          let careerValueAdjustment = 0;
-          if (careerResponses.careerValue === 'opportunity') {
-              careerValueAdjustment = 2;
-          } else if (careerResponses.careerValue === 'balanced') {
-              careerValueAdjustment = 1;
-          }
+    const totalScore = careerResponses.careerChangeScore +
+                       careerResponses.payCutScore +
+                       careerResponses.variableCompScore +
+                       careerResponses.relocateScore +
+                       careerResponses.newSkillsScore;
 
-            
-            // Career value adjustment (higher score for valuing opportunity over stability)
-            let careerValueAdjustment =// Calculate career risk score
-            function calculateCareerRiskScore() {
+    let entrepreneurScore = 0;
+    if (careerResponses.entrepreneur === 'yes') {
+        entrepreneurScore = 3;
+    } else if (careerResponses.entrepreneur === 'maybe') {
+        entrepreneurScore = 1;
+    }
 
-                careerValueAdjustment = 2;
-            } else if (careerResponses.careerValue === 'balanced') {
-                careerValueAdjustment =// Calculate career risk score
-        function calculateCareerRiskScore() {
-            // Sum Likert scale scores from career risk questions
-            const totalScore = careerResponses.careerChangeScore +
-                               careerResponses.payCutScore +
-                               careerResponses.variableCompScore +
-                               careerResponses.relocateScore +
-                               careerResponses.newSkillsScore;
-            
-            // Entrepreneur bonus (higher score for more entrepreneurial tendencies)
-            let entrepreneurScore = 0;
-            if (careerResponses.entrepreneur === 'yes') {
-                entrepreneurScore = 3;
-            } else if (careerResponses.entrepreneur === 'maybe') {
-                entrepreneurScore = 1;
-            }
-            
-            // Career value adjustment (higher score for valuing opportunity over stability)
-            let careerValueAdjustment = 0;
-            if (careerResponses.careerValue === 'opportunity') {
-                careerValueAdjustment = 2;
-            } else if (careerResponses.careerValue === 'balanced') {
-                careerValueAdjustment = 1;
-            }
-            
-            // Calculate final score
-            const careerRiskScore = totalScore + entrepreneurScore + careerValueAdjustment;
-            
-            // Calculate correlation coefficient (simplified)
-            // Higher BART pumps correlates to lower risk aversion
-            const bartRiskTaking = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
-            
-            // Normalize BART risk-taking to 0-1 scale
-            const normalizedBartRisk = bartRiskTaking / MAX_PUMPS;
-            
-            // Normalize career risk to 0-1 scale (max possible score is 25 + 3 + 2 = 30)
-            const normalizedCareerRisk = careerRiskScore / 30;
-            
-            // Simplified correlation coefficient (difference between normalized scores)
-            // Closer to 0 means higher correlation
-            const correlationCoefficient = Math.abs(normalizedBartRisk - normalizedCareerRisk);
-            
-            // Invert and scale to a -1 to 1 range where 1 is perfect correlation
-            const correlation = 1 - (correlationCoefficient * 2);
-            
-            return {
-                careerRiskScore,
-                correlation,
-                normalizedBartRisk,
-                normalizedCareerRisk
-            };
-        }
+    let careerValueAdjustment = 0;
+    if (careerResponses.careerValue === 'opportunity') {
+        careerValueAdjustment = 2;
+    } else if (careerResponses.careerValue === 'balanced') {
+        careerValueAdjustment = 1;
+    }
+
+    const careerRiskScore = totalScore + entrepreneurScore + careerValueAdjustment;
+
+    const bartRiskTaking = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
+    const normalizedBartRisk = bartRiskTaking / MAX_PUMPS;
+    const normalizedCareerRisk = careerRiskScore / 30;
+
+    const correlationCoefficient = Math.abs(normalizedBartRisk - normalizedCareerRisk);
+    const correlation = 1 - (correlationCoefficient * 2);
+
+    return {
+        careerRiskScore,
+        correlation,
+        normalizedBartRisk,
+        normalizedCareerRisk
+    };
+}
+
         
         // Show results screen
         function showResults(bartMetrics, careerRiskScore) {
