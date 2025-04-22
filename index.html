@@ -626,6 +626,52 @@
     </div>
 
     <script>
+    // Add the missing submitCareerForm function
+function submitCareerForm() {
+    // Validate form
+    const position = document.getElementById('current-position').value;
+    const industry = document.getElementById('industry').value;
+    const goals = document.getElementById('career-goals').value;
+    const entrepreneur = document.querySelector('input[name="entrepreneur"]:checked')?.value;
+    const careerValue = document.querySelector('input[name="career-value"]:checked')?.value;
+    const careerChange = document.querySelector('input[name="career-change"]:checked')?.value;
+    const payCut = document.querySelector('input[name="pay-cut"]:checked')?.value;
+    const variableComp = document.querySelector('input[name="variable-comp"]:checked')?.value;
+    const relocate = document.querySelector('input[name="relocate"]:checked')?.value;
+    const newSkills = document.querySelector('input[name="new-skills"]:checked')?.value;
+    
+    if (!position || !industry || !goals || !entrepreneur || !careerValue || 
+        !careerChange || !payCut || !variableComp || !relocate || !newSkills) {
+        alert('Please answer all questions.');
+        return;
+    }
+    
+    // Store career responses
+    careerResponses = {
+        position,
+        industry,
+        goals,
+        entrepreneur,
+        careerValue,
+        careerChangeScore: parseInt(careerChange),
+        payCutScore: parseInt(payCut),
+        variableCompScore: parseInt(variableComp),
+        relocateScore: parseInt(relocate),
+        newSkillsScore: parseInt(newSkills)
+    };
+    
+    // Calculate risk metrics for BART task
+    const bartMetrics = calculateRiskMetrics();
+    
+    // Calculate career risk score
+    const careerRiskScore = calculateCareerRiskScore();
+    
+    // Show results
+    showResults(bartMetrics, careerRiskScore);
+    
+    // Send data to Google Sheets
+    sendResultsToGoogleSheets(bartMetrics, careerRiskScore);
+}
         // BART Task Configuration
         const MAX_PUMPS = 128;  // Maximum possible pumps per balloon
         const NUM_TRIALS = 5;   // Total number of balloons
