@@ -659,7 +659,39 @@
         const pointsMessage = document.getElementById('points-message');
         const progress = document.getElementById('progress');
         const statusMessage = document.getElementById('status-message');
-        
+        // Add the missing collectPoints function
+function collectPoints() {
+    if (!gameActive || currentPumps === 0) return;
+    
+    // Update game state
+    gameActive = false;
+    pumpsHistory.push(currentPumps);
+    popHistory.push(false);
+    
+    // Update UI
+    message.textContent = `You collected ${currentPumps} points!`;
+    
+    // Disable buttons
+    pumpButton.disabled = true;
+    cashoutButton.disabled = true;
+    
+    // Wait and then move to next trial
+    setTimeout(moveToNextTrial, 1500);
+}
+
+// Add the missing moveToNextTrial function
+function moveToNextTrial() {
+    if (currentTrial < NUM_TRIALS) {
+        startTrial();
+    } else {
+        // Show career aspirations questionnaire
+        gameScreen.style.display = 'none';
+        careerScreen.style.display = 'block';
+    }
+}
+
+// Note: Make sure these functions are defined before the init() function
+// which sets up the event handlers that reference them.
         // Calculate pop probabilities for each pump
         function initializePopProbabilities() {
             for (let i = 1; i <= MAX_PUMPS; i++) {
