@@ -874,61 +874,52 @@ function popBalloon() {
 }
 
 // Fix 2: Update the calculateRiskMetrics function to include meanAdjustedPumps
-function calculateRiskMetrics() {
-    // Count explosions - this is the primary indicator of risk-taking behavior
-    const numberOfExplosions = popHistory.filter(popped => popped).length;
-    const proportionExploded = numberOfExplosions / popHistory.length;
-    
-    // Calculate basic metrics (keeping these for data purposes)
-    const meanPumpsAllTrials = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
-    
-    // Calculate adjusted pumps (only for unexploded balloons)
-    const unexplodedTrials = pumpsHistory.filter((pumps, index) => !popHistory[index]);
-    const meanAdjustedPumps = unexplodedTrials.length > 0 
-        ? unexplodedTrials.reduce((sum, pumps) => sum + pumps, 0) / unexplodedTrials.length 
-        : 0;
-    
-    // ULTRA SIMPLE RISK SCORING:
-    // If you popped 4-5 out of 5 balloons = very high risk-taking (low risk aversion)
-    // If you popped 2-3 out of 5 balloons = moderate risk-taking
-    // If you popped 0-1 out of 5 balloons = low risk-taking (high risk aversion)
-    
-    // Calculate risk-taking score (0-100)
-    let riskTakingScore = 0;
-    
-    // Explosion-based scoring (main factor)
-    if (proportionExploded >= 0.8) {
-        // 80-100% explosions = extremely high risk (score 90-100)
-        riskTakingScore = 90 + (proportionExploded - 0.8) * 50;
-    } else if (proportionExploded >= 0.6) {
-        // 60-80% explosions = very high risk (score 75-90)
-        riskTakingScore = 75 + (proportionExploded - 0.6) * 75;
-    } else if (proportionExploded >= 0.4) {
-        // 40-60% explosions = high risk (score 60-75)
-        riskTakingScore = 60 + (proportionExploded - 0.4) * 75;
-    } else if (proportionExploded >= 0.2) {
-        // 20-40% explosions = moderate risk (score 40-60)
-        riskTakingScore = 40 + (proportionExploded - 0.2) * 100;
-    } else {
-        // 0-20% explosions = low risk (score 0-40)
-        riskTakingScore = proportionExploded * 200;
+function calculateCareerRiskScore() {
+    const totalScore = careerResponses.careerChangeScore +
+                       careerResponses.payCutScore +
+                       careerResponses.variableCompScore +
+                       careerResponses.relocateScore +
+                       careerResponses.newSkillsScore;
+
+    let entrepreneurScore = 0;
+    if (careerResponses.entrepreneur === 'yes') {
+        entrepreneurScore = 3;
+    } else if (careerResponses.entrepreneur === 'maybe') {
+        entrepreneurScore = 1;
     }
+
+    let careerValueAdjustment = 0;
+    if (careerResponses.careerValue === 'opportunity') {
+        careerValueAdjustment = 2;
+    } else if (careerResponses.careerValue === 'balanced') {
+        careerValueAdjustment = 1;
+    }
+
+    const careerRiskScore = totalScore + entrepreneurScore + careerValueAdjustment;
     
-    // Cap the score at 100
-    riskTakingScore = Math.min(100, riskTakingScore);
+    // FIXED CORRELATION CALCULATION:
+    // Now we'll use the risk-taking scores (not risk aversion) for both metrics
+    // This ensures high risk in BART and high risk in career show high correlation
     
-    // Convert to risk aversion score (0 = most risky, 100 = most cautious)
-    const riskAversionScore = 100 - riskTakingScore;
+    // Get BART risk metric (use explosion proportion as primary indicator)
+    const bartRiskMetric = popHistory.filter(popped => popped).length / popHistory.length;
     
+    // Normalize both metrics to 0-1 scale
+    const normalizedBartRisk = bartRiskMetric; // Already 0-1
+    const normalizedCareerRisk = careerRiskScore / 30; // 30 is max career risk score
+    
+    // Calculate similarity (not difference)
+    // 1 means perfect alignment, 0 means complete opposite
+    const correlation = 1 - Math.abs(normalizedBartRisk - normalizedCareerRisk);
+
     return {
-        meanAdjustedPumps,
-        meanPumpsAllTrials,
-        numberOfExplosions,
-        proportionExploded,
-        riskAversionScore,
-        riskTakingScore
+        careerRiskScore,
+        correlation,
+        normalizedBartRisk,
+        normalizedCareerRisk
     };
 }
+
 
 
         
@@ -1043,7 +1034,7 @@ function calculateRiskMetrics() {
         interpretation += 'Your BART performance shows an EXTREMELY CAUTIOUS approach, completely avoiding losses at the expense of potential rewards. ';
     }
     
-    // Career risk interpretation (unchanged)
+    // Career risk interpretation
     if (careerRiskScore.careerRiskScore > 20) {
         interpretation += 'Your career aspirations reflect a high willingness to take risks for potential rewards. ';
     } else if (careerRiskScore.careerRiskScore > 10) {
@@ -1052,13 +1043,13 @@ function calculateRiskMetrics() {
         interpretation += 'Your career aspirations suggest you prioritize stability and security in your professional life. ';
     }
     
-    // Correlation interpretation (unchanged)
+    // FIXED correlation interpretation
     if (careerRiskScore.correlation > 0.7) {
         interpretation += 'There appears to be a strong alignment between your behavioral risk tendencies and your career aspirations.';
     } else if (careerRiskScore.correlation > 0.3) {
         interpretation += 'There appears to be a moderate alignment between your behavioral risk tendencies and your career aspirations.';
     } else {
-        interpretation += 'There appears to be some disconnect between how you approach risk in the BART task versus your stated career aspirations.';
+        interpretation += 'There appears to be a significant disconnect between how you approach risk in the BART task versus your stated career aspirations.';
     }
     
     return interpretation;
