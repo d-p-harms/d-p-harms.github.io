@@ -873,26 +873,21 @@
         
         // Calculate risk metrics for BART
         function calculateRiskMetrics() {
-    // Calculate average pumps (all trials)
-    const meanPumpsAllTrials = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
+            const meanPumpsAllTrials = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
 
-    // Calculate number of explosions
-    const numberOfExplosions = popHistory.filter(popped => popped).length;
+            const numberOfExplosions = popHistory.filter(popped => popped).length;
+            const proportionExploded = numberOfExplosions / popHistory.length;
 
-    // Calculate proportion of balloons exploded
-    const proportionExploded = numberOfExplosions / popHistory.length;
+            const riskAversionScore = 100 * (1 - (meanPumpsAllTrials / MAX_PUMPS));
 
-    // Calculate risk aversion score (0–100, higher = more risk averse)
-    const riskAversionScore = 100 * (1 - (meanPumpsAllTrials / MAX_PUMPS));
+            return {
+                meanPumpsAllTrials,
+                numberOfExplosions,
+                proportionExploded,
+                riskAversionScore
+            };
+        }
 
-    return {
-        meanPumpsAllTrials,
-        meanAdjustedPumps: meanPumpsAllTrials, // Optional — can rename/remove this
-        numberOfExplosions,
-        proportionExploded,
-        riskAversionScore
-    };
-}
 
         
         // Calculate career risk score
