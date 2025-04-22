@@ -293,7 +293,7 @@
         const POP_PROBABILITIES = [];  // Will be calculated on initialization
         
         // Google Sheets Script URL - REPLACE THIS WITH YOUR SCRIPT URL
-        const SCRIPT_URL = 'https://docs.google.com/spreadsheets/d/1ZT5gqVQqNf6HgrDbZpbFbAfPGtOaOGBqMP6eZqF6fmQ/edit?gid=0#gid=0'; 
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHh0DS-eG0AKb6UNEg8R1eCl9dE8GBE-g1MGchbYzvo9dj2457aXG0wC_BxkuciRB6/exec'; 
         
         // Game state
         let currentTrial = 0;
@@ -567,8 +567,7 @@
             formData.append('numberOfExplosions', metrics.numberOfExplosions);
             formData.append('proportionExploded', metrics.proportionExploded.toFixed(2));
             
-            // Add trial data
-            formData.append('numTrials', NUM_TRIALS);
+            // Add trial data - explicitly add each trial's data individually
             for (let i = 0; i < pumpsHistory.length; i++) {
                 formData.append(`trial${i+1}Pumps`, pumpsHistory[i]);
                 formData.append(`trial${i+1}Outcome`, popHistory[i] ? 'POPPED' : 'COLLECTED');
