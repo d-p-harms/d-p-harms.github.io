@@ -913,12 +913,14 @@
                                careerResponses.newSkillsScore;
             
             // Entrepreneur bonus (higher score for more entrepreneurial tendencies)
-            let entrepreneurScore = 0;
-            if (careerResponses.entrepreneur === 'yes') {
-                entrepreneurScore = 3;
-            } else if (careerResponses.entrepreneur === 'maybe') {
-                entrepreneurScore = 1;
-            }
+           // Career value adjustment (higher score for valuing opportunity over stability)
+          let careerValueAdjustment = 0;
+          if (careerResponses.careerValue === 'opportunity') {
+              careerValueAdjustment = 2;
+          } else if (careerResponses.careerValue === 'balanced') {
+              careerValueAdjustment = 1;
+          }
+
             
             // Career value adjustment (higher score for valuing opportunity over stability)
             let careerValueAdjustment =// Calculate career risk score
