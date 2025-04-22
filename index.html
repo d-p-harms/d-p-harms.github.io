@@ -1,4 +1,639 @@
-// BART Task Configuration
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk & Career Assessment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        #container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 90%;
+            max-width: 800px;
+            text-align: center;
+        }
+        #game-area {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #balloon {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150"><path d="M50,10 C20,10 10,40 10,70 C10,100 30,130 50,130 C70,130 90,100 90,70 C90,40 80,10 50,10" fill="%230080ff" stroke="black" stroke-width="2"/><path d="M45,130 L55,130 L55,145 L45,145 Z" fill="%23daa520" stroke="black" stroke-width="1"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            position: relative;
+            transition: all 0.1s ease-in-out;
+        }
+        #pop-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="20" y="60" font-family="Arial" font-size="30" fill="red">POP!</text><path d="M10,10 L90,90 M90,10 L10,90" stroke="red" stroke-width="4"/></svg>');
+            background-repeat: no-repeat;
+            background-size: contain;
+            display: none;
+        }
+        #message {
+            font-size: 1.2em;
+            margin: 10px 0;
+            min-height: 4em;
+        }
+        #instructions {
+            margin: 15px 0;
+            font-size: 0.9em;
+            color: #555;
+        }
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #pump-button {
+            background-color: #2196F3;
+        }
+        #pump-button:hover {
+            background-color: #0b7dda;
+        }
+        #cashout-button {
+            background-color: #ff9800;
+        }
+        #cashout-button:hover {
+            background-color: #e68a00;
+        }
+        #next-button, #start-button, #show-results-button {
+            background-color: #4CAF50;
+        }
+        #progress-bar {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        #progress {
+            width: 0;
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+        .screen {
+            display: none;
+        }
+        #info-form, #career-form {
+            text-align: left;
+            margin: 20px 0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .radio-option input {
+            width: auto;
+            margin-right: 10px;
+        }
+        #results-container {
+            text-align: left;
+            margin: 20px 0;
+        }
+        #results-summary {
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .result-highlight {
+            font-size: 1.2em;
+            color: #2196F3;
+        }
+        #status-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        /* Career aspirations form styling */
+        .likert-scale {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+        .likert-option {
+            text-align: center;
+            width: 18%;
+        }
+        .likert-option input {
+            margin: 0 auto 5px auto;
+        }
+        .likert-option label {
+            font-size: 12px;
+        }
+        .likert-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+        .likert-label {
+            text-align: center;
+            width: 18%;
+            font-size: 12px;
+        }
+        .keyboard-active {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 3px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Risk & Career Assessment</h1>
+        
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="screen" style="display: block;">
+            <p>Welcome to our research study on risk behavior and career aspirations.</p>
+            <p>This assessment consists of two parts:</p>
+            <ol>
+                <li>The Balloon Analogue Risk Task (BART) - a measure of risk-taking behavior</li>
+                <li>A brief career aspirations questionnaire</li>
+            </ol>
+            <p>All responses will be kept confidential and used for research purposes only.</p>
+            
+            <div id="info-form">
+                <h3>Participant Information:</h3>
+                <div class="form-group">
+                    <label for="participant-id">Participant ID:</label>
+                    <input type="text" id="participant-id" required>
+                </div>
+                <div class="form-group">
+                    <label for="age">Age:</label>
+                    <input type="number" id="age" min="18" max="120" required>
+                </div>
+                <div class="form-group">
+                    <label for="gender">Gender:</label>
+                    <select id="gender" required>
+                        <option value="">Please select</option>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                        <option value="other">Other</option>
+                        <option value="prefer not to say">Prefer not to say</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="education">Highest Education Level:</label>
+                    <select id="education" required>
+                        <option value="">Please select</option>
+                        <option value="high_school">High School/GED</option>
+                        <option value="associates">Associate's Degree</option>
+                        <option value="bachelors">Bachelor's Degree</option>
+                        <option value="masters">Master's Degree</option>
+                        <option value="doctorate">Doctorate/PhD</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button id="start-button" class="button">Begin Assessment</button>
+        </div>
+        
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <h2>Part 1: Balloon Analogue Risk Task</h2>
+            <p>In this task, you will see a balloon that you can inflate by clicking the "Pump" button. Each pump earns you points, but if you pump too much, the balloon will pop and you'll lose all points for that balloon. You can choose to "Collect Points" at any time before the balloon pops.</p>
+            
+            <div id="progress-bar">
+                <div id="progress">0%</div>
+            </div>
+            
+            <div id="game-area">
+                <div id="balloon"></div>
+                <div id="pop-image"></div>
+            </div>
+            
+            <div id="message">Trial 1 of 5</div>
+            <div id="points-message">Points for this balloon: 0</div>
+            <div id="instructions">Press "Pump" to inflate the balloon or "Collect Points" to bank your current points</div>
+            
+            <div>
+                <button id="pump-button" class="button">Pump</button>
+                <button id="cashout-button" class="button">Collect Points</button>
+            </div>
+        </div>
+        
+        <!-- Career Aspirations Screen -->
+        <div id="career-screen" class="screen">
+            <h2>Part 2: Career Aspirations Questionnaire</h2>
+            <p>Please answer the following questions about your career goals and preferences.</p>
+            
+            <div id="career-form">
+                <!-- Current Career Status -->
+                <div class="form-group">
+                    <label for="current-position">Current Career Position/Status:</label>
+                    <select id="current-position" required>
+                        <option value="">Please select</option>
+                        <option value="student">Student</option>
+                        <option value="entry_level">Entry-level position</option>
+                        <option value="mid_level">Mid-level position</option>
+                        <option value="senior_level">Senior-level position</option>
+                        <option value="manager">Manager/Supervisor</option>
+                        <option value="executive">Executive/Director</option>
+                        <option value="owner">Business Owner/Entrepreneur</option>
+                        <option value="unemployed">Currently unemployed</option>
+                        <option value="retired">Retired</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <!-- Field/Industry -->
+                <div class="form-group">
+                    <label for="industry">Current or Desired Industry/Field:</label>
+                    <select id="industry" required>
+                        <option value="">Please select</option>
+                        <option value="technology">Technology/IT</option>
+                        <option value="healthcare">Healthcare/Medical</option>
+                        <option value="finance">Finance/Banking</option>
+                        <option value="education">Education/Academia</option>
+                        <option value="government">Government/Public Service</option>
+                        <option value="nonprofit">Non-profit/NGO</option>
+                        <option value="retail">Retail/Sales</option>
+                        <option value="manufacturing">Manufacturing</option>
+                        <option value="legal">Legal Services</option>
+                        <option value="media">Media/Entertainment</option>
+                        <option value="hospitality">Hospitality/Tourism</option>
+                        <option value="arts">Arts/Creative Fields</option>
+                        <option value="construction">Construction/Engineering</option>
+                        <option value="agriculture">Agriculture/Farming</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <!-- Career Goals -->
+                <div class="form-group">
+                    <label for="career-goals">What are your primary career goals for the next 5-10 years?</label>
+                    <textarea id="career-goals" required></textarea>
+                </div>
+                
+                <!-- Entrepreneurship -->
+                <div class="form-group">
+                    <label>Have you ever considered starting your own business?</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="entrepreneur-yes" name="entrepreneur" value="yes" required>
+                            <label for="entrepreneur-yes">Yes, I have started a business or am actively planning to</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="entrepreneur-maybe" name="entrepreneur" value="maybe">
+                            <label for="entrepreneur-maybe">I have considered it but haven't taken action</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="entrepreneur-no" name="entrepreneur" value="no">
+                            <label for="entrepreneur-no">No, I prefer traditional employment</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Job Stability vs. Opportunity -->
+                <div class="form-group">
+                    <label>When considering career opportunities, which do you value more?</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="stability" name="career-value" value="stability" required>
+                            <label for="stability">Job stability and security</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="balanced" name="career-value" value="balanced">
+                            <label for="balanced">A balance of stability and opportunity</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="opportunity" name="career-value" value="opportunity">
+                            <label for="opportunity">Growth potential and advancement opportunities</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Career Risk Items (Likert Scale) -->
+                <h3>Career Risk Assessment</h3>
+                <p>For each statement, indicate your level of agreement from 1 (Strongly Disagree) to 5 (Strongly Agree).</p>
+                
+                <!-- Item 1 -->
+                <div class="form-group">
+                    <label>I am willing to change careers or industries for better opportunities.</label>
+                    <div class="likert-scale">
+                        <div class="likert-option">
+                            <input type="radio" id="career-change-1" name="career-change" value="1" required>
+                            <label for="career-change-1">1</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="career-change-2" name="career-change" value="2">
+                            <label for="career-change-2">2</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="career-change-3" name="career-change" value="3">
+                            <label for="career-change-3">3</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="career-change-4" name="career-change" value="4">
+                            <label for="career-change-4">4</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="career-change-5" name="career-change" value="5">
+                            <label for="career-change-5">5</label>
+                        </div>
+                    </div>
+                    <div class="likert-labels">
+                        <div class="likert-label">Strongly Disagree</div>
+                        <div class="likert-label"></div>
+                        <div class="likert-label">Neutral</div>
+                        <div class="likert-label"></div>
+                        <div class="likert-label">Strongly Agree</div>
+                    </div>
+                </div>
+                
+                <!-- Item 2 -->
+                <div class="form-group">
+                    <label>I would take a pay cut for a job that offers better long-term potential.</label>
+                    <div class="likert-scale">
+                        <div class="likert-option">
+                            <input type="radio" id="pay-cut-1" name="pay-cut" value="1" required>
+                            <label for="pay-cut-1">1</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="pay-cut-2" name="pay-cut" value="2">
+                            <label for="pay-cut-2">2</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="pay-cut-3" name="pay-cut" value="3">
+                            <label for="pay-cut-3">3</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="pay-cut-4" name="pay-cut" value="4">
+                            <label for="pay-cut-4">4</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="pay-cut-5" name="pay-cut" value="5">
+                            <label for="pay-cut-5">5</label>
+                        </div>
+                    </div>
+                    <div class="likert-labels">
+                        <div class="likert-label">Strongly Disagree</div>
+                        <div class="likert-label"></div>
+                        <div class="likert-label">Neutral</div>
+                        <div class="likert-label"></div>
+                        <div class="likert-label">Strongly Agree</div>
+                    </div>
+                </div>
+                
+                <!-- Item 3 -->
+                <div class="form-group">
+                    <label>I prefer jobs with variable compensation (e.g., commission, bonuses) over fixed salaries.</label>
+                    <div class="likert-scale">
+                        <div class="likert-option">
+                            <input type="radio" id="variable-comp-1" name="variable-comp" value="1" required>
+                            <label for="variable-comp-1">1</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="variable-comp-2" name="variable-comp" value="2">
+                            <label for="variable-comp-2">2</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="variable-comp-3" name="variable-comp" value="3">
+                            <label for="variable-comp-3">3</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="variable-comp-4" name="variable-comp" value="4">
+                            <label for="variable-comp-4">4</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="variable-comp-5" name="variable-comp" value="5">
+                            <label for="variable-comp-5">5</label>
+                        </div>
+                    </div>
+                    <div class="likert-labels">
+                        <div class="likert-label">Strongly Disagree</div>
+                        <div class="likert-label"></div>
+                        <div class="likert-label">Neutral</div>
+                        <div class="likert-label"></div>
+                        <div class="likert-label">Strongly Agree</div>
+                    </div>
+                </div>
+                
+                <!-- Item 4 -->
+                <div class="form-group">
+                    <label>I would relocate to a new city or country for the right career opportunity.</label>
+                    <div class="likert-scale">
+                        <div class="likert-option">
+                            <input type="radio" id="relocate-1" name="relocate" value="1" required>
+                            <label for="relocate-1">1</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="relocate-2" name="relocate" value="2">
+                            <label for="relocate-2">2</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="relocate-3" name="relocate" value="3">
+                            <label for="relocate-3">3</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="relocate-4" name="relocate" value="4">
+                            <label for="relocate-4">4</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="relocate-5" name="relocate" value="5">
+                            <label for="relocate-5">5</label>
+                        </div>
+                    </div>
+                    <div class="likert-labels">
+                        <div class="likert-label">Strongly Disagree</div>
+                        <div class="likert-label"></div>
+                        <div class="likert-label">Neutral</div>
+                        <div class="likert-label"></div>
+                        <div class="likert-label">Strongly Agree</div>
+                    </div>
+                </div>
+                
+                <!-- Item 5 -->
+                <div class="form-group">
+                    <label>I regularly seek out new skills and qualifications even when not required for my current job.</label>
+                    <div class="likert-scale">
+                        <div class="likert-option">
+                            <input type="radio" id="new-skills-1" name="new-skills" value="1" required>
+                            <label for="new-skills-1">1</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="new-skills-2" name="new-skills" value="2">
+                            <label for="new-skills-2">2</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="new-skills-3" name="new-skills" value="3">
+                            <label for="new-skills-3">3</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="new-skills-4" name="new-skills" value="4">
+                            <label for="new-skills-4">4</label>
+                        </div>
+                        <div class="likert-option">
+                            <input type="radio" id="new-skills-5" name="new-skills" value="5">
+                            <label for="new-skills-5">5</label>
+                        </div>
+                    </div>
+                    <div class="likert-labels">
+                        <div class="likert-label">Strongly Disagree</div>
+                        <div class="likert-label"></div>
+                        <div class="likert-label">Neutral</div>
+                        <div class="likert-label"></div>
+                        <div class="likert-label">Strongly Agree</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="submit-career-button" class="button">Submit and View Results</button>
+        </div>
+        
+        <!-- Results Screen -->
+        <div id="results-screen" class="screen">
+            <h2>Assessment Complete!</h2>
+            <p>Thank you for participating in our study on risk behavior and career aspirations.</p>
+            
+            <div id="results-container">
+                <h3>Risk Assessment Results:</h3>
+                <div id="results-summary">
+                    <p>Your risk aversion score: <span id="risk-score" class="result-highlight">--</span> (0-100)</p>
+                    <p>Higher scores indicate more risk-averse behavior.</p>
+                </div>
+                
+                <h3>BART Trial Results:</h3>
+                <table id="results-table">
+                    <thead>
+                        <tr>
+                            <th>Trial</th>
+                            <th>Pumps</th>
+                            <th>Outcome</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Results will be inserted here -->
+                    </tbody>
+                </table>
+                
+                <h3>Risk Metrics:</h3>
+                <table id="metrics-table">
+                    <tbody>
+                        <tr>
+                            <td>Average pumps (all trials):</td>
+                            <td id="avg-pumps-all">--</td>
+                        </tr>
+                        <tr>
+                            <td>Average pumps (unexploded balloons):</td>
+                            <td id="avg-pumps-unexploded">--</td>
+                        </tr>
+                        <tr>
+                            <td>Number of explosions:</td>
+                            <td id="num-explosions">--</td>
+                        </tr>
+                        <tr>
+                            <td>Proportion of balloons exploded:</td>
+                            <td id="prop-explosions">--</td>
+                        </tr>
+                        <tr>
+                            <td>Total points earned:</td>
+                            <td id="total-points-earned">--</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Career Risk Profile:</h3>
+                <p id="career-risk-score">Your career risk-taking score: <span class="result-highlight">--</span> (out of 30)</p>
+                <p id="risk-correlation">Correlation between BART performance and career risk profile: <span class="result-highlight">--</span></p>
+                
+                <p id="assessment-interpretation">
+                    <!-- Interpretation will be inserted here -->
+                </p>
+            </div>
+            
+            <div id="status-message"></div>
+            <button id="restart-button" class="button">Start New Session</button>
+        </div>
+    </div>
+    <script>
+    // BART Task Configuration
 const MAX_PUMPS = 128;  // Maximum possible pumps per balloon
 const NUM_TRIALS = 10;   // Total number of balloons
 const POP_PROBABILITIES = [];  // Will be calculated on initialization
@@ -34,3 +669,637 @@ function initializePopProbabilities() {
     console.log("Pump 40 probability:", POP_PROBABILITIES[40]);
     console.log("Pump 80 probability:", POP_PROBABILITIES[80]);
 }
+    // Google Sheets Script URL - REPLACE THIS WITH YOUR SCRIPT URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyJMxpRPLv0C1YM4liLZFgcJcoySz_C0XeNp2xLzanePTubN7HA1gqLaJg488MaHn7/exec'; 
+    
+    // Game state
+    let totalPoints = 0;
+    let currentTrial = 0;
+    let currentPumps = 0;
+    let pumpsHistory = [];
+    let popHistory = [];
+    let gameActive = false;
+    let participantInfo = {};
+    let careerResponses = {};
+    
+    // DOM elements
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const careerScreen = document.getElementById('career-screen');
+    const resultsScreen = document.getElementById('results-screen');
+    const startButton = document.getElementById('start-button');
+    const pumpButton = document.getElementById('pump-button');
+    const cashoutButton = document.getElementById('cashout-button');
+    const submitCareerButton = document.getElementById('submit-career-button');
+    const restartButton = document.getElementById('restart-button');
+    const balloon = document.getElementById('balloon');
+    const popImage = document.getElementById('pop-image');
+    const message = document.getElementById('message');
+    const pointsMessage = document.getElementById('points-message');
+    const progress = document.getElementById('progress');
+    const statusMessage = document.getElementById('status-message');
+    
+    // Calculate pop probabilities for each pump
+    function initializePopProbabilities() {
+        for (let i = 1; i <= MAX_PUMPS; i++) {
+            // Probability increases with each pump
+            // For simplicity, we use a linear increase model here
+            POP_PROBABILITIES[i] = i / MAX_PUMPS;
+        }
+    }
+    
+    // Generate a unique ID
+    function generateUniqueID() {
+        return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    // Check if user already has an ID stored
+    function checkForExistingUser() {
+        let userID = localStorage.getItem('risk_assessment_user_id');
+        let lastSubmissionDate = localStorage.getItem('risk_assessment_last_submission');
+        
+        if (!userID) {
+            // First time visitor - generate and store a new ID
+            userID = generateUniqueID();
+            localStorage.setItem('risk_assessment_user_id', userID);
+            
+            // Pre-fill the participant ID field
+            document.getElementById('participant-id').value = userID;
+            document.getElementById('participant-id').readOnly = true;
+        } else {
+            // Returning user - use the existing ID
+            document.getElementById('participant-id').value = userID;
+            document.getElementById('participant-id').readOnly = true;
+            
+            // Check if they've already submitted data
+            if (lastSubmissionDate) {
+                const lastSubmission = new Date(lastSubmissionDate);
+                const currentDate = new Date();
+                const daysSinceSubmission = Math.floor((currentDate - lastSubmission) / (1000 * 60 * 60 * 24));
+                
+                // Show a message if they've already submitted recently
+                if (daysSinceSubmission < 7) {
+                    const warningMessage = document.createElement('div');
+                    warningMessage.style.backgroundColor = '#fff3cd';
+                    warningMessage.style.color = '#856404';
+                    warningMessage.style.padding = '10px';
+                    warningMessage.style.borderRadius = '5px';
+                    warningMessage.style.marginBottom = '15px';
+                    warningMessage.innerHTML = `<strong>Notice:</strong> It appears you've already completed this assessment within the past week (${daysSinceSubmission} days ago). Multiple submissions from the same participant may affect our research data. Please proceed only if instructed to do so by the researcher.`;
+                    
+                    welcomeScreen.insertBefore(warningMessage, document.getElementById('info-form'));
+                }
+            }
+        }
+    }
+    
+    // Initialize the game
+    function init() {
+        initializePopProbabilities();
+        
+        // Generate or retrieve unique user ID
+        checkForExistingUser();
+        
+        startButton.addEventListener('click', startGame);
+        pumpButton.addEventListener('click', pumpBalloon);
+        cashoutButton.addEventListener('click', collectPoints);
+        submitCareerButton.addEventListener('click', submitCareerForm);
+        restartButton.addEventListener('click', restart);
+        
+        // Add keyboard controls
+        document.addEventListener('keydown', function(event) {
+            if (!gameScreen.style.display || gameScreen.style.display === 'none') {
+                return; // Only handle keyboard events when game screen is visible
+            }
+            
+            if (event.key === ' ' || event.key === 'ArrowUp') {
+                // Space or Up Arrow = Pump
+                if (!pumpButton.disabled) {
+                    // Add visual feedback
+                    pumpButton.classList.add('keyboard-active');
+                    setTimeout(() => pumpButton.classList.remove('keyboard-active'), 100);
+                    pumpBalloon();
+                }
+            } else if (event.key === 'Enter' || event.key === 'ArrowDown') {
+                // Enter or Down Arrow = Collect
+                if (!cashoutButton.disabled) {
+                    // Add visual feedback
+                    cashoutButton.classList.add('keyboard-active');
+                    setTimeout(() => cashoutButton.classList.remove('keyboard-active'), 100);
+                    collectPoints();
+                }
+            }
+        });
+        
+        // Add key control instructions to the game screen
+        const keyControlsInfo = document.createElement('div');
+        keyControlsInfo.style.marginTop = '10px';
+        keyControlsInfo.style.fontSize = '0.8em';
+        keyControlsInfo.style.color = '#666';
+        keyControlsInfo.innerHTML = 'Keyboard controls: <span style="padding: 2px 6px; background: #f1f1f1; border-radius: 3px; margin: 0 3px;">Space</span> or <span style="padding: 2px 6px; background: #f1f1f1; border-radius: 3px; margin: 0 3px;">↑</span> to Pump, <span style="padding: 2px 6px; background: #f1f1f1; border-radius: 3px; margin: 0 3px;">Enter</span> or <span style="padding: 2px 6px; background: #f1f1f1; border-radius: 3px; margin: 0 3px;">↓</span> to Collect';
+        
+        const buttonsContainer = document.querySelector('#game-screen > div:last-child');
+        buttonsContainer.parentNode.insertBefore(keyControlsInfo, buttonsContainer.nextSibling);
+    }
+    
+    // Start the game
+    function startGame() {
+        // Validate form
+        const participantId = document.getElementById('participant-id').value;
+        const age = document.getElementById('age').value;
+        const gender = document.getElementById('gender').value;
+        const education = document.getElementById('education').value;
+        
+        if (!participantId || !age || !gender || !education) {
+            alert('Please fill out all fields.');
+            return;
+        }
+        
+        // Store participant info
+        participantInfo = {
+            id: participantId,
+            age: age,
+            gender: gender,
+            education: education,
+            date: new Date().toISOString().slice(0, 19).replace('T', ' ')
+        };
+        
+        // Reset game state
+        currentTrial = 0;
+        totalPoints = 0;
+        currentPumps = 0;
+        pumpsHistory = [];
+        popHistory = [];
+        
+        // Show game screen
+        welcomeScreen.style.display = 'none';
+        gameScreen.style.display = 'block';
+        
+        // Start first trial
+        startTrial();
+    }
+    
+    // Start a new trial
+    function startTrial() {
+        currentPumps = 0;
+        gameActive = true;
+        
+        // Update UI
+        currentTrial++;
+        // Update the message in the HTML
+        message.textContent = `Trial ${currentTrial} of ${NUM_TRIALS}`;
+        pointsMessage.textContent = `Points for this balloon: 0`;
+        
+        // Reset balloon
+        balloon.style.width = '100px';
+        balloon.style.height = '150px';
+        balloon.style.display = 'block';
+        popImage.style.display = 'none';
+        
+        // Update progress bar
+        const progressPercentage = ((currentTrial - 1) / NUM_TRIALS) * 100;
+        progress.style.width = `${progressPercentage}%`;
+        progress.textContent = `${Math.round(progressPercentage)}%`;
+        
+        // Enable buttons
+        pumpButton.disabled = false;
+        cashoutButton.disabled = false;
+    }
+    
+    // Pump the balloon
+    function pumpBalloon() {
+        if (!gameActive) return;
+        
+        currentPumps++;
+        
+        // Check if balloon pops
+        const popProbability = POP_PROBABILITIES[currentPumps];
+        const randomValue = Math.random();
+        
+        if (randomValue < popProbability) {
+            // Balloon pops
+            popBalloon();
+        } else {
+            // Balloon gets bigger
+            const newSize = 100 + (currentPumps * 3);
+            balloon.style.width = `${newSize}px`;
+            balloon.style.height = `${newSize * 1.5}px`;
+            
+            // Update points message
+            pointsMessage.textContent = `Points for this balloon: ${currentPumps}`;
+        }
+    }
+    
+    // Pop the balloon
+    function popBalloon() {
+        // Update game state
+        gameActive = false;
+        pumpsHistory.push(currentPumps);
+        popHistory.push(true);
+        
+        // Update UI
+        balloon.style.display = 'none';
+        popImage.style.display = 'block';
+        message.textContent = 'BALLOON POPPED! Points lost.';
+        pointsMessage.textContent = 'Points for this balloon: 0';
+        
+        console.log("Pop sound would play here");
+        
+        // Disable pump button, enable cashout for next trial
+        pumpButton.disabled = true;
+        cashoutButton.disabled = true;
+        
+        // Wait and then move to next trial
+        setTimeout(moveToNextTrial, 1500);
+    }
+    
+    // Collect points function
+    function collectPoints() {
+        if (!gameActive || currentPumps === 0) return;
+        
+        // Update game state
+        totalPoints += currentPumps;
+        gameActive = false;
+        pumpsHistory.push(currentPumps);
+        popHistory.push(false);
+        
+        // Update UI
+        message.textContent = `You collected ${currentPumps} points!`;
+        
+        // Disable buttons
+        pumpButton.disabled = true;
+        cashoutButton.disabled = true;
+        
+        // Wait and then move to next trial
+        setTimeout(moveToNextTrial, 1500);
+    }
+    
+    // Move to next trial
+    function moveToNextTrial() {
+        if (currentTrial < NUM_TRIALS) {
+            startTrial();
+        } else {
+            // Show career aspirations questionnaire
+            gameScreen.style.display = 'none';
+            careerScreen.style.display = 'block';
+        }
+    }
+    
+    // Submit career form
+    function submitCareerForm() {
+        // Validate form
+        const position = document.getElementById('current-position').value;
+        const industry = document.getElementById('industry').value;
+        const goals = document.getElementById('career-goals').value;
+        const entrepreneur = document.querySelector('input[name="entrepreneur"]:checked')?.value;
+        const careerValue = document.querySelector('input[name="career-value"]:checked')?.value;
+        const careerChange = document.querySelector('input[name="career-change"]:checked')?.value;
+        const payCut = document.querySelector('input[name="pay-cut"]:checked')?.value;
+        const variableComp = document.querySelector('input[name="variable-comp"]:checked')?.value;
+        const relocate = document.querySelector('input[name="relocate"]:checked')?.value;
+        const newSkills = document.querySelector('input[name="new-skills"]:checked')?.value;
+        
+        if (!position || !industry || !goals || !entrepreneur || !careerValue || 
+            !careerChange || !payCut || !variableComp || !relocate || !newSkills) {
+            alert('Please answer all questions.');
+            return;
+        }
+        
+        // Store career responses
+        careerResponses = {
+            position,
+            industry,
+            goals,
+            entrepreneur,
+            careerValue,
+            careerChangeScore: parseInt(careerChange),
+            payCutScore: parseInt(payCut),
+            variableCompScore: parseInt(variableComp),
+            relocateScore: parseInt(relocate),
+            newSkillsScore: parseInt(newSkills)
+        };
+        
+        // Calculate risk metrics for BART task
+        const bartMetrics = calculateRiskMetrics();
+        
+        // Calculate career risk score
+        const careerRiskScore = calculateCareerRiskScore();
+        
+        // Show results
+        showResults(bartMetrics, careerRiskScore);
+        
+        // Send data to Google Sheets
+        sendResultsToGoogleSheets(bartMetrics, careerRiskScore);
+    }
+    
+    // Calculate risk metrics
+    function calculateRiskMetrics() {
+        // Count explosions - this is the primary indicator of risk-taking behavior
+        const numberOfExplosions = popHistory.filter(popped => popped).length;
+        const proportionExploded = numberOfExplosions / popHistory.length;
+        
+        // Calculate basic metrics (keeping these for data purposes)
+        const meanPumpsAllTrials = pumpsHistory.reduce((sum, pumps) => sum + pumps, 0) / pumpsHistory.length;
+        
+        // Calculate adjusted pumps (only for unexploded balloons)
+        const unexplodedTrials = pumpsHistory.filter((pumps, index) => !popHistory[index]);
+        const meanAdjustedPumps = unexplodedTrials.length > 0 
+            ? unexplodedTrials.reduce((sum, pumps) => sum + pumps, 0) / unexplodedTrials.length 
+            : 0;
+        
+        // ULTRA SIMPLE RISK SCORING:
+        // If you popped 4-5 out of 5 balloons = very high risk-taking (low risk aversion)
+        // If you popped 2-3 out of 5 balloons = moderate risk-taking
+        // If you popped 0-1 out of 5 balloons = low risk-taking (high risk aversion)
+        
+        // Calculate risk-taking score (0-100)
+        let riskTakingScore = 0;
+        
+        // Explosion-based scoring (main factor)
+        if (proportionExploded >= 0.8) {
+            // 80-100% explosions = extremely high risk (score 90-100)
+            riskTakingScore = 90 + (proportionExploded - 0.8) * 50;
+        } else if (proportionExploded >= 0.6) {
+            // 60-80% explosions = very high risk (score 75-90)
+            riskTakingScore = 75 + (proportionExploded - 0.6) * 75;
+        } else if (proportionExploded >= 0.4) {
+            // 40-60% explosions = high risk (score 60-75)
+            riskTakingScore = 60 + (proportionExploded - 0.4) * 75;
+        } else if (proportionExploded >= 0.2) {
+            // 20-40% explosions = moderate risk (score 40-60)
+            riskTakingScore = 40 + (proportionExploded - 0.2) * 100;
+        } else {
+            // 0-20% explosions = low risk (score 0-40)
+            riskTakingScore = proportionExploded * 200;
+        }
+        
+        // Cap the score at 100
+        riskTakingScore = Math.min(100, riskTakingScore);
+        
+        // Convert to risk aversion score (0 = most risky, 100 = most cautious)
+        const riskAversionScore = 100 - riskTakingScore;
+        
+        return {
+            meanAdjustedPumps,
+            meanPumpsAllTrials,
+            numberOfExplosions,
+            proportionExploded,
+            riskAversionScore,
+            riskTakingScore
+        };
+    }
+    
+    // Calculate career risk score
+    function calculateCareerRiskScore() {
+        const totalScore = careerResponses.careerChangeScore +
+                           careerResponses.payCutScore +
+                           careerResponses.variableCompScore +
+                           careerResponses.relocateScore +
+                           careerResponses.newSkillsScore;
+        
+        let entrepreneurScore = 0;
+        if (careerResponses.entrepreneur === 'yes') {
+            entrepreneurScore = 3;
+        } else if (careerResponses.entrepreneur === 'maybe') {
+            entrepreneurScore = 1;
+        }
+        
+        let careerValueAdjustment = 0;
+        if (careerResponses.careerValue === 'opportunity') {
+            careerValueAdjustment = 2;
+        } else if (careerResponses.careerValue === 'balanced') {
+            careerValueAdjustment = 1;
+        }
+        
+        const careerRiskScore = totalScore + entrepreneurScore + careerValueAdjustment;
+        
+        // FIXED CORRELATION CALCULATION:
+        // Now we'll use the risk-taking scores (not risk aversion) for both metrics
+        // This ensures high risk in BART and high risk in career show high correlation
+        
+        // Get BART risk metric (use explosion proportion as primary indicator)
+        const bartRiskMetric = popHistory.filter(popped => popped).length / popHistory.length;
+        
+        // Normalize both metrics to 0-1 scale
+        const normalizedBartRisk = bartRiskMetric; // Already 0-1
+        const normalizedCareerRisk = careerRiskScore / 30; // 30 is max career risk score
+        
+        // Calculate similarity (not difference)
+        // 1 means perfect alignment, 0 means complete opposite
+        const correlation = 1 - Math.abs(normalizedBartRisk - normalizedCareerRisk);
+        
+        return {
+            careerRiskScore,
+            correlation,
+            normalizedBartRisk,
+            normalizedCareerRisk
+        };
+    }
+    
+    // Show results screen
+    function showResults(bartMetrics, careerRiskScore) {
+        // Update UI
+        careerScreen.style.display = 'none';
+        resultsScreen.style.display = 'block';
+        
+        // Update BART results with explosion rate emphasized
+        document.getElementById('risk-score').textContent = bartMetrics.riskAversionScore.toFixed(1);
+        document.getElementById('avg-pumps-all').textContent = bartMetrics.meanPumpsAllTrials.toFixed(2);
+        document.getElementById('avg-pumps-unexploded').textContent = bartMetrics.meanAdjustedPumps.toFixed(2);
+        document.getElementById('num-explosions').textContent = bartMetrics.numberOfExplosions;
+        document.getElementById('prop-explosions').textContent = bartMetrics.proportionExploded.toFixed(2);
+        document.getElementById('total-points-earned').textContent = totalPoints;
+        
+        // Add a clear risk behavior indicator based on explosion proportion
+        let riskLabel = '';
+        if (bartMetrics.proportionExploded >= 0.8) riskLabel = 'EXTREMELY HIGH RISK';
+        else if (bartMetrics.proportionExploded >= 0.6) riskLabel = 'VERY HIGH RISK';
+        else if (bartMetrics.proportionExploded >= 0.4) riskLabel = 'HIGH RISK';
+        else if (bartMetrics.proportionExploded >= 0.2) riskLabel = 'MODERATE RISK';
+        else riskLabel = 'LOW RISK';
+        
+        // Update results summary with risk label
+        document.getElementById('results-summary').innerHTML = 
+            `<p>Your risk aversion score: <span id="risk-score" class="result-highlight">${bartMetrics.riskAversionScore.toFixed(1)}</span> (0-100)</p>
+             <p>Your risk behavior category: <span class="result-highlight">${riskLabel}</span></p>
+             <p>Higher risk aversion scores indicate more cautious behavior.</p>`;
+        
+        // Update career risk scores
+        document.getElementById('career-risk-score').innerHTML = `Your career risk-taking score: <span class="result-highlight">${careerRiskScore.careerRiskScore}</span> (out of 30)`;
+        document.getElementById('risk-correlation').innerHTML = `Correlation between BART performance and career risk profile: <span class="result-highlight">${careerRiskScore.correlation.toFixed(2)}</span>`;
+        
+        // Populate results table
+        const resultsTable = document.getElementById('results-table').getElementsByTagName('tbody')[0];
+        resultsTable.innerHTML = '';
+        
+        for (let i = 0; i < pumpsHistory.length; i++) {
+            const row = resultsTable.insertRow();
+            
+            const cellTrial = row.insertCell(0);
+            const cellPumps = row.insertCell(1);
+            const cellOutcome = row.insertCell(2);
+            
+            cellTrial.textContent = i + 1;
+            cellPumps.textContent = pumpsHistory[i];
+            cellOutcome.textContent = popHistory[i] ? 'POPPED' : 'COLLECTED';
+        }
+        
+        // Generate interpretation
+        const interpretation = generateInterpretation(bartMetrics, careerRiskScore);
+        document.getElementById('assessment-interpretation').textContent = interpretation;
+    }
+    
+    // Generate interpretation of results
+    function generateInterpretation(bartMetrics, careerRiskScore) {
+        let interpretation = '';
+        
+        // Risk interpretation based PRIMARILY on explosion proportion
+        if (bartMetrics.proportionExploded >= 0.8) {
+            interpretation += 'Your BART performance shows an EXTREMELY HIGH level of risk-taking, with a strong preference for maximum reward despite frequent losses. ';
+        } else if (bartMetrics.proportionExploded >= 0.6) {
+            interpretation += 'Your BART performance shows a VERY HIGH level of risk-taking, willingly accepting frequent losses for higher potential rewards. ';
+        } else if (bartMetrics.proportionExploded >= 0.4) {
+            interpretation += 'Your BART performance shows a HIGH level of risk-taking, accepting occasional losses for better rewards. ';
+        } else if (bartMetrics.proportionExploded >= 0.2) {
+            interpretation += 'Your BART performance shows a MODERATE approach to risk-taking, balancing rewards with potential losses. ';
+        } else if (bartMetrics.proportionExploded > 0) {
+            interpretation += 'Your BART performance shows a CAUTIOUS approach to risk-taking, generally avoiding losses. ';
+        } else {
+            interpretation += 'Your BART performance shows an EXTREMELY CAUTIOUS approach, completely avoiding losses at the expense of potential rewards. ';
+        }
+        
+        // Add learning curve analysis
+        if (pumpsHistory.length >= 5) {
+            // Split the trials into first half and second half
+            const halfPoint = Math.floor(pumpsHistory.length / 2);
+            const firstHalfPumps = pumpsHistory.slice(0, halfPoint);
+            const secondHalfPumps = pumpsHistory.slice(halfPoint);
+            
+            const firstHalfAvg = firstHalfPumps.reduce((sum, pumps) => sum + pumps, 0) / firstHalfPumps.length;
+            const secondHalfAvg = secondHalfPumps.reduce((sum, pumps) => sum + pumps, 0) / secondHalfPumps.length;
+            
+            const firstHalfPops = popHistory.slice(0, halfPoint).filter(popped => popped).length;
+            const secondHalfPops = popHistory.slice(halfPoint).filter(popped => popped).length;
+            
+            // Calculate a percentage change to determine learning effect
+            const pumpPercentChange = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
+            
+            // Check for learning patterns
+            if (pumpPercentChange > 20 && secondHalfPops <= firstHalfPops) {
+                interpretation += 'You showed a strong positive learning curve, becoming more confident and optimizing your earnings as the task progressed. ';
+            } else if (pumpPercentChange > 10 && secondHalfPops <= firstHalfPops) {
+                interpretation += 'You showed a moderate positive learning curve, gradually increasing your risk-taking for better rewards. ';
+            } else if (pumpPercentChange < -20) {
+                interpretation += 'Your behavior became notably more cautious as the task progressed, possibly due to experiencing losses. ';
+            } else if (Math.abs(pumpPercentChange) <= 10) {
+                interpretation += 'You maintained a consistent strategy throughout the task, showing stable risk preferences. ';
+            }
+        }
+        
+        // Career risk interpretation
+        if (careerRiskScore.careerRiskScore > 20) {
+            interpretation += 'Your career aspirations reflect a high willingness to take risks for potential rewards. ';
+        } else if (careerRiskScore.careerRiskScore > 10) {
+            interpretation += 'Your career aspirations reflect a balanced approach to risk and stability. ';
+        } else {
+            interpretation += 'Your career aspirations suggest you prioritize stability and security in your professional life. ';
+        }
+        
+        // FIXED correlation interpretation
+        if (careerRiskScore.correlation > 0.7) {
+            interpretation += 'There appears to be a strong alignment between your behavioral risk tendencies and your career aspirations.';
+        } else if (careerRiskScore.correlation > 0.3) {
+            interpretation += 'There appears to be a moderate alignment between your behavioral risk tendencies and your career aspirations.';
+        } else {
+            interpretation += 'There appears to be a significant disconnect between how you approach risk in the BART task versus your stated career aspirations.';
+        }
+        
+        return interpretation;
+    }
+    
+    // Send results to Google Sheets
+    function sendResultsToGoogleSheets(bartMetrics, careerRiskScore) {
+        // Check if script URL is set
+        if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbw5e9wiyVbTLGpINg4tTpu1WGPKkmxg4KHPI-dl2QenByj-vlx70Vb3ZZqtBVw3Q6Kf/exec') {
+            showStatus('Google Sheets integration not configured. Contact experiment administrator.', 'error');
+            return;
+        }
+        
+        // Store the current time as the last submission date
+        localStorage.setItem('risk_assessment_last_submission', new Date().toISOString());
+        
+        // Prepare data to send
+        const formData = new FormData();
+        
+        // Add participant info
+        formData.append('participantId', participantInfo.id);
+        formData.append('uniqueUserID', localStorage.getItem('risk_assessment_user_id'));
+        formData.append('age', participantInfo.age);
+        formData.append('gender', participantInfo.gender);
+        formData.append('education', participantInfo.education);
+        formData.append('timestamp', participantInfo.date);
+        
+        // Add BART metrics
+        formData.append('riskAversionScore', bartMetrics.riskAversionScore.toFixed(2));
+        formData.append('meanPumpsAllTrials', bartMetrics.meanPumpsAllTrials.toFixed(2));
+        formData.append('meanAdjustedPumps', bartMetrics.meanAdjustedPumps.toFixed(2));
+        formData.append('numberOfExplosions', bartMetrics.numberOfExplosions);
+        formData.append('proportionExploded', bartMetrics.proportionExploded.toFixed(2));
+        formData.append('totalPoints', totalPoints);
+        
+        // Add trial data - explicitly add each trial's data individually
+        for (let i = 0; i < pumpsHistory.length; i++) {
+            formData.append(`trial${i+1}Pumps`, pumpsHistory[i]);
+            formData.append(`trial${i+1}Outcome`, popHistory[i] ? 'POPPED' : 'COLLECTED');
+        }
+        
+        // Add career data
+        formData.append('currentPosition', careerResponses.position);
+        formData.append('industry', careerResponses.industry);
+        formData.append('careerGoals', careerResponses.goals);
+        formData.append('entrepreneur', careerResponses.entrepreneur);
+        formData.append('careerValue', careerResponses.careerValue);
+        formData.append('careerChangeScore', careerResponses.careerChangeScore);
+        formData.append('payCutScore', careerResponses.payCutScore);
+        formData.append('variableCompScore', careerResponses.variableCompScore);
+        formData.append('relocateScore', careerResponses.relocateScore);
+        formData.append('newSkillsScore', careerResponses.newSkillsScore);
+        formData.append('careerRiskScore', careerRiskScore.careerRiskScore);
+        formData.append('riskCorrelation', careerRiskScore.correlation.toFixed(2));
+        
+        // Send data
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Important for CORS issues
+            body: formData
+        })
+        .then(response => {
+            // Since we're using no-cors mode, we can't actually read the response
+            // But we can at least confirm the request was sent
+            showStatus('Results successfully saved to database!', 'success');
+        })
+        .catch(error => {
+            showStatus('There was an error saving your results. Please inform the experiment administrator.', 'error');
+            console.error('Error:', error);
+        });
+    }
+    
+    // Show status message
+    function showStatus(message, type) {
+        statusMessage.textContent = message;
+        statusMessage.className = type;
+        statusMessage.style.display = 'block';
+    }
+    
+    // Restart the task
+    function restart() {
+        resultsScreen.style.display = 'none';
+        welcomeScreen.style.display = 'block';
+        statusMessage.style.display = 'none';
+    }
+    
+    // Initialize the game when page loads
+    window.onload = init;
+    </script>
+</body>
+</html>
