@@ -289,14 +289,27 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="education">Highest Education Level:</label>
-                    <select id="education" required>
+                    <label for="education-attained">Highest Education Level Attained/Enrolled:</label>
+                    <select id="education-attained" required>
                         <option value="">Please select</option>
                         <option value="high_school">High School/GED</option>
                         <option value="associates">Associate's Degree</option>
                         <option value="bachelors">Bachelor's Degree</option>
                         <option value="masters">Master's Degree</option>
                         <option value="doctorate">Doctorate/PhD</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="education-desired">Highest Education Level Desired:</label>
+                    <select id="education-desired" required>
+                        <option value="">Please select</option>
+                        <option value="high_school">High School/GED</option>
+                        <option value="associates">Associate's Degree</option>
+                        <option value="bachelors">Bachelor's Degree</option>
+                        <option value="masters">Master's Degree</option>
+                        <option value="doctorate">Doctorate/PhD</option>
+                        <option value="satisfied">Satisfied with current level</option>
                         <option value="other">Other</option>
                     </select>
                 </div>
@@ -390,6 +403,60 @@
                 <div class="form-group">
                     <label for="career-goals">What are your primary career goals for the next 5-10 years?</label>
                     <textarea id="career-goals" required></textarea>
+                </div>
+                
+                <!-- Financial Status Question -->
+                <div class="form-group">
+                    <label>How would you describe your current financial situation?</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="financial-struggling" name="financial-status" value="struggling" required>
+                            <label for="financial-struggling">Struggling to meet basic needs</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="financial-tight" name="financial-status" value="tight">
+                            <label for="financial-tight">Making ends meet, but it's tight</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="financial-stable" name="financial-status" value="stable">
+                            <label for="financial-stable">Financially stable</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="financial-comfortable" name="financial-status" value="comfortable">
+                            <label for="financial-comfortable">Financially comfortable</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="financial-very-comfortable" name="financial-status" value="very_comfortable">
+                            <label for="financial-very-comfortable">Very financially comfortable</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Financial Safety Net Question -->
+                <div class="form-group">
+                    <label>How would you describe your financial safety net?</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="safety-none" name="financial-safety" value="none" required>
+                            <label for="safety-none">No savings or family support to fall back on</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="safety-minimal" name="financial-safety" value="minimal">
+                            <label for="safety-minimal">Minimal savings, could survive 1-2 months</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="safety-moderate" name="financial-safety" value="moderate">
+                            <label for="safety-moderate">Moderate savings or family support if needed</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="safety-strong" name="financial-safety" value="strong">
+                            <label for="safety-strong">Strong safety net, could survive 6+ months</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="safety-very-strong" name="financial-safety" value="very_strong">
+                            <label for="safety-very-strong">Very strong safety net, minimal financial concerns</label>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Entrepreneurship -->
@@ -869,9 +936,10 @@
         const participantId = document.getElementById('participant-id').value;
         const age = document.getElementById('age').value;
         const gender = document.getElementById('gender').value;
-        const education = document.getElementById('education').value;
+        const educationAttained = document.getElementById('education-attained').value;
+        const educationDesired = document.getElementById('education-desired').value;
         
-        if (!participantId || !age || !gender || !education) {
+        if (!participantId || !age || !gender || !educationAttained || !educationDesired) {
             alert('Please fill out all fields.');
             return;
         }
@@ -881,7 +949,8 @@
             id: participantId,
             age: age,
             gender: gender,
-            education: education,
+            educationAttained: educationAttained,
+            educationDesired: educationDesired,
             date: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
         
@@ -1016,6 +1085,8 @@
         const position = document.getElementById('current-position').value;
         const industry = document.getElementById('industry').value;
         const goals = document.getElementById('career-goals').value;
+        const financialStatus = document.querySelector('input[name="financial-status"]:checked')?.value;
+        const financialSafety = document.querySelector('input[name="financial-safety"]:checked')?.value;
         const entrepreneur = document.querySelector('input[name="entrepreneur"]:checked')?.value;
         const careerValue = document.querySelector('input[name="career-value"]:checked')?.value;
         const careerChange = document.querySelector('input[name="career-change"]:checked')?.value;
@@ -1024,7 +1095,7 @@
         const relocate = document.querySelector('input[name="relocate"]:checked')?.value;
         const newSkills = document.querySelector('input[name="new-skills"]:checked')?.value;
         
-        if (!position || !industry || !goals || !entrepreneur || !careerValue || 
+        if (!position || !industry || !goals || !financialStatus || !financialSafety || !entrepreneur || !careerValue || 
             !careerChange || !payCut || !variableComp || !relocate || !newSkills) {
             alert('Please answer all questions.');
             return;
@@ -1035,6 +1106,8 @@
             position,
             industry,
             goals,
+            financialStatus,
+            financialSafety,
             entrepreneur,
             careerValue,
             careerChangeScore: parseInt(careerChange),
@@ -1292,7 +1365,8 @@
         formData.append('uniqueUserID', localStorage.getItem('risk_assessment_user_id'));
         formData.append('age', participantInfo.age);
         formData.append('gender', participantInfo.gender);
-        formData.append('education', participantInfo.education);
+        formData.append('educationAttained', participantInfo.educationAttained);
+        formData.append('educationDesired', participantInfo.educationDesired);
         formData.append('timestamp', participantInfo.date);
         
         // Add BART metrics
@@ -1313,6 +1387,8 @@
         formData.append('currentPosition', careerResponses.position);
         formData.append('industry', careerResponses.industry);
         formData.append('careerGoals', careerResponses.goals);
+        formData.append('financialStatus', careerResponses.financialStatus);
+        formData.append('financialSafety', careerResponses.financialSafety);
         formData.append('entrepreneur', careerResponses.entrepreneur);
         formData.append('careerValue', careerResponses.careerValue);
         formData.append('careerChangeScore', careerResponses.careerChangeScore);
