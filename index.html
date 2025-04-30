@@ -888,10 +888,7 @@
     }
 
     // Reset total points display
-    if (totalPointsMessage) {
-        totalPointsMessage.textContent = `Total points earned: 0`;
-        totalPointsMessage.style.color = '#4CAF50';
-    }
+    
     // Google Sheets Script URL - REPLACE THIS WITH YOUR SCRIPT URL
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyJMxpRPLv0C1YM4liLZFgcJcoySz_C0XeNp2xLzanePTubN7HA1gqLaJg488MaHn7/exec';
      
@@ -952,6 +949,59 @@
         cashoutButton.addEventListener('click', collectPoints);
         submitCareerButton.addEventListener('click', submitCareerForm);
         restartButton.addEventListener('click', restart);
+        if (totalPointsMessage) {
+            totalPointsMessage.textContent = `Total points earned: 0`;
+            totalPointsMessage.style.color = '#4CAF50';
+        }
+        pumpButton.addEventListener('touchend', function(e) {
+            e.preventDefault(); // Prevent double-tap zoom
+            if (!pumpButton.disabled) {
+                pumpBalloon();
+            }
+        });
+        
+        cashoutButton.addEventListener('touchend', function(e) {
+            e.preventDefault(); // Prevent double-tap zoom
+            if (!cashoutButton.disabled) {
+                collectPoints();
+            }
+        });
+        
+        if (isMobileDevice()) {
+            // Make buttons more touch-friendly
+            const buttons = document.querySelectorAll('.button');
+            buttons.forEach(button => {
+                button.style.padding = '12px 20px';
+                button.style.fontSize = '18px';
+                button.style.margin = '10px 5px';
+            });
+            
+            // Add touch feedback
+            pumpButton.addEventListener('touchstart', function() {
+                this.classList.add('keyboard-active');
+            });
+            pumpButton.addEventListener('touchend', function() {
+                this.classList.remove('keyboard-active');
+            });
+            cashoutButton.addEventListener('touchstart', function() {
+                this.classList.add('keyboard-active');
+            });
+            cashoutButton.addEventListener('touchend', function() {
+                this.classList.remove('keyboard-active');
+            });
+            
+            // Adjust game area for mobile
+            document.getElementById('game-area').style.height = '300px';
+        }
+        
+        // Add keyboard controls - REST OF FUNCTION REMAINS THE SAME
+        document.addEventListener('keydown', function(event) {
+            // ... existing code ...
+        });
+        
+        // Add key control instructions to the game screen
+        const keyControlsInfo = document.createElement('div');
+        
         if (isMobileDevice()) {
             // Make buttons more touch-friendly
             const buttons = document.querySelectorAll('.button');
