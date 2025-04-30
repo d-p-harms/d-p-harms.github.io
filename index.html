@@ -815,11 +815,7 @@
     let currentPumps = 0;
     let pumpsHistory = [];
     let popHistory = [];
-    // Reset total points display
-    if (totalPointsMessage) {
-        totalPointsMessage.textContent = `Total points earned: 0`;
-        totalPointsMessage.style.color = '#4CAF50';
-    }
+    
     let gameActive = false;
     let participantInfo = {};
     let careerResponses = {};
@@ -891,7 +887,11 @@
         riskPointer.style.left = pointerPosition + '%';
     }
 
-    
+    // Reset total points display
+    if (totalPointsMessage) {
+        totalPointsMessage.textContent = `Total points earned: 0`;
+        totalPointsMessage.style.color = '#4CAF50';
+    }
     // Google Sheets Script URL - REPLACE THIS WITH YOUR SCRIPT URL
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyJMxpRPLv0C1YM4liLZFgcJcoySz_C0XeNp2xLzanePTubN7HA1gqLaJg488MaHn7/exec';
      
