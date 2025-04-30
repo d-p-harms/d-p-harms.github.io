@@ -784,25 +784,25 @@
         
         // Pumps 6-10 have extremely low probability
         for (let i = SAFE_ZONE_PUMPS + 1; i <= 10; i++) {
-            POP_PROBABILITIES[i] = 0.01; // Fixed 1% chance
+            POP_PROBABILITIES[i] = 0.1; // Fixed 1% chance
         }
         
         // Pumps 11-15 have gradually increasing but still low probability
         for (let i = 11; i <= 15; i++) {
             // Gradually increase from 1% to 5%
-            POP_PROBABILITIES[i] = 0.01 + (i - 10) * 0.008;
+            POP_PROBABILITIES[i] = 0.1 + (i - 10) * 0.01;
         }
         
         // Pumps 16-20 have moderate probability
         for (let i = 16; i <= 20; i++) {
             // Gradually increase from 5% to 15%
-            POP_PROBABILITIES[i] = 0.05 + (i - 15) * 0.02;
+            POP_PROBABILITIES[i] = 0.1 + (i - 15) * 0.04;
         }
         
         // Pumps 21-30 have higher probability
         for (let i = 21; i <= MAX_PUMPS; i++) {
             // Gradually increase from 15% to 60% at the maximum
-            POP_PROBABILITIES[i] = 0.15 + (i - 20) * 0.045;
+            POP_PROBABILITIES[i] = 0.3 + (i - 20) * 0.06;
         }
     }
     
