@@ -870,10 +870,10 @@
         // Calculate position for the risk pointer based on pump count
         let pointerPosition;
         
-        if (currentPumps <= 10) {
+        if (currentPumps <= 5) {
             // First 10 pumps - scale position from 0% to 37.5% (green zone)
             // First 5 are completely safe, next 5 have very low risk
-            pointerPosition = (currentPumps / 10) * 37.5;
+            pointerPosition = (currentPumps / 5) * 37.5;
         } else if (currentPumps <= 20) {
             // Pumps 11-20 - scale position from 37.5% to 75% (yellow zone)
             pointerPosition = 37.5 + ((currentPumps - 10) / 10) * 37.5;
