@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Interactive Decision Assessment</title>
     <style>
         body {
@@ -171,6 +171,7 @@
             box-sizing: border-box;
             border: 1px solid #ddd;
             border-radius: 4px;
+            font-size: 16px; /* Prevent zoom on iOS */
         }
         textarea {
             height: 100px;
@@ -334,6 +335,9 @@
                 <div class="form-group">
                     <label for="participant-id">Participant ID:</label>
                     <input type="text" id="participant-id" required>
+                    <small style="display: block; margin-top: 5px; color: #666;">
+                        An ID will be generated automatically. If you were assigned a specific ID, please enter it here.
+                    </small>
                 </div>
                 <div class="form-group">
                     <label for="age">Age:</label>
@@ -346,7 +350,7 @@
                         <option value="female">Female</option>
                         <option value="male">Male</option>
                         <option value="other">Other</option>
-                        <option value="prefer_not_to_say">Prefer not to say</option>
+                        <option value="prefer not to say">Prefer not to say</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -804,13 +808,10 @@
     </div>
     <script>
     // BART Task Configuration
-    const MAX_PUMPS = 30;  // Maximum possible pumps per balloon (changed from 128)
-    const NUM_TRIALS = 10;   // Total number of balloons
+    const MAX_PUMPS = 30;  // Maximum possible pumps per balloon
+    const NUM_TRIALS = 10;  // Total number of balloons
     const POP_PROBABILITIES = [];  // Will be calculated on initialization
-    const SAFE_ZONE_PUMPS = 5;  // First 5 pumps are 100% safe (changed from 10)
-    
-    // Insert your Google Sheets Script URL here (this is a placeholder - replace with your actual endpoint)
-    const SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_ACTUAL_SCRIPT_ID_HERE/exec';
+    const SAFE_ZONE_PUMPS = 5;  // First 5 pumps are 100% safe
     
     // Game state
     let totalPoints = 0;
@@ -818,7 +819,6 @@
     let currentPumps = 0;
     let pumpsHistory = [];
     let popHistory = [];
-    
     let gameActive = false;
     let participantInfo = {};
     let careerResponses = {};
@@ -844,19 +844,14 @@
     
     // Calculate pop probabilities for each pump - with complex probability distribution
     function initializePopProbabilities() {
-        // Reset the array to ensure clean initialization
-        for (let i = 0; i <= MAX_PUMPS; i++) {
-            POP_PROBABILITIES[i] = 0;
-        }
-        
-        // Safe zone - 0% chance of popping
+        // First 5 pumps have zero probability (safe zone)
         for (let i = 1; i <= SAFE_ZONE_PUMPS; i++) {
-            POP_PROBABILITIES[i] = 0;
+            POP_PROBABILITIES[i] = 0; // 0% chance (safe zone)
         }
         
         // Pumps 6-10 have very low probability
         for (let i = SAFE_ZONE_PUMPS + 1; i <= 10; i++) {
-            POP_PROBABILITIES[i] = 0.05; // Fixed 5% chance
+            POP_PROBABILITIES[i] = 0.02; // Fixed 2% chance
         }
         
         // Pumps 11-20 have moderate probability
@@ -879,6 +874,7 @@
         
         if (currentPumps <= 10) {
             // First 10 pumps - scale position from 0% to 37.5% (green zone)
+            // First 5 are completely safe, next 5 have very low risk
             pointerPosition = (currentPumps / 10) * 37.5;
         } else if (currentPumps <= 20) {
             // Pumps 11-20 - scale position from 37.5% to 75% (yellow zone)
@@ -894,36 +890,55 @@
         riskPointer.style.left = pointerPosition + '%';
     }
     
+    // Google Sheets Script URL - REPLACE THIS WITH YOUR SCRIPT URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyJMxpRPLv0C1YM4liLZFgcJcoySz_C0XeNp2xLzanePTubN7HA1gqLaJg488MaHn7/exec';
+     
     // Generate a unique ID
     function generateUniqueID() {
-        return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const timestamp = Date.now().toString();
+        const randomPart = Math.random().toString(36).substring(2, 11);
+        return 'user_' + timestamp + '_' + randomPart;
     }
     
     // Check if user already has an ID stored
     function checkForExistingUser() {
-        let userID = localStorage.getItem('risk_assessment_user_id');
-        let lastSubmissionDate = localStorage.getItem('risk_assessment_last_submission');
+        let userID = null;
+        let lastSubmissionDate = null;
         
-        if (!userID) {
-            // First time visitor - generate and store a new ID
+        try {
+            userID = localStorage.getItem('risk_assessment_user_id');
+            lastSubmissionDate = localStorage.getItem('risk_assessment_last_submission');
+        } catch (error) {
+            console.error('Error accessing localStorage:', error);
+            // Continue with fallback behavior
+        }
+        
+        const participantIdField = document.getElementById('participant-id');
+        
+        // If no valid ID found, generate a new one
+        if (!userID || userID === 'null' || userID === 'undefined') {
             userID = generateUniqueID();
-            localStorage.setItem('risk_assessment_user_id', userID);
             
-            // Pre-fill the participant ID field
-            document.getElementById('participant-id').value = userID;
-            document.getElementById('participant-id').readOnly = true;
-        } else {
-            // Returning user - use the existing ID
-            document.getElementById('participant-id').value = userID;
-            document.getElementById('participant-id').readOnly = true;
-            
-            // Check if they've already submitted data
-            if (lastSubmissionDate) {
+            try {
+                localStorage.setItem('risk_assessment_user_id', userID);
+            } catch (error) {
+                console.error('Error storing user ID in localStorage:', error);
+            }
+        }
+        
+        // Set the ID field value
+        if (participantIdField) {
+            participantIdField.value = userID;
+            participantIdField.readOnly = false; // Allow user to change if needed
+        }
+        
+        // Show warning if they've already submitted recently
+        if (lastSubmissionDate) {
+            try {
                 const lastSubmission = new Date(lastSubmissionDate);
                 const currentDate = new Date();
                 const daysSinceSubmission = Math.floor((currentDate - lastSubmission) / (1000 * 60 * 60 * 24));
                 
-                // Show a message if they've already submitted recently
                 if (daysSinceSubmission < 7) {
                     const warningMessage = document.createElement('div');
                     warningMessage.style.backgroundColor = '#fff3cd';
@@ -933,17 +948,24 @@
                     warningMessage.style.marginBottom = '15px';
                     warningMessage.innerHTML = `<strong>Notice:</strong> It appears you've already completed this assessment within the past week (${daysSinceSubmission} days ago). Multiple submissions from the same participant may affect our research data. Please proceed only if instructed to do so by the researcher.`;
                     
-                    welcomeScreen.insertBefore(warningMessage, document.getElementById('info-form'));
+                    const infoForm = document.getElementById('info-form');
+                    if (infoForm && welcomeScreen) {
+                        welcomeScreen.insertBefore(warningMessage, infoForm);
+                    }
                 }
+            } catch (error) {
+                console.error('Error processing submission date:', error);
             }
         }
     }
     
-    // Check if device is mobile
+    // Helper function to detect mobile devices
     function isMobileDevice() {
-        return (window.innerWidth <= 768 || 
-                navigator.maxTouchPoints > 0 || 
-                /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+        return (
+            window.innerWidth <= 768 || 
+            navigator.maxTouchPoints > 0 || 
+            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        );
     }
     
     // Initialize the game
@@ -953,21 +975,35 @@
         // Generate or retrieve unique user ID
         checkForExistingUser();
         
-        // Add event listeners
+        // Reset total points message
+        if (totalPointsMessage) {
+            totalPointsMessage.textContent = 'Total points earned: 0';
+            totalPointsMessage.style.color = '#4CAF50';
+        }
+        
         startButton.addEventListener('click', startGame);
         pumpButton.addEventListener('click', pumpBalloon);
         cashoutButton.addEventListener('click', collectPoints);
         submitCareerButton.addEventListener('click', submitCareerForm);
         restartButton.addEventListener('click', restart);
         
-        // Initialize total points display
-        if (totalPointsMessage) {
-            totalPointsMessage.textContent = `Total points earned: 0`;
-        }
+        // Add touch event handlers for mobile
+        pumpButton.addEventListener('touchend', function(e) {
+            e.preventDefault(); // Prevent double-tap zoom
+            if (!pumpButton.disabled) {
+                pumpBalloon();
+            }
+        });
         
-        // Only add touch event listeners if they don't already exist
+        cashoutButton.addEventListener('touchend', function(e) {
+            e.preventDefault(); // Prevent double-tap zoom
+            if (!cashoutButton.disabled) {
+                collectPoints();
+            }
+        });
+        
         if (isMobileDevice()) {
-            // Mobile optimizations
+            // Make buttons more touch-friendly
             const buttons = document.querySelectorAll('.button');
             buttons.forEach(button => {
                 button.style.padding = '12px 20px';
@@ -975,36 +1011,22 @@
                 button.style.margin = '10px 5px';
             });
             
-            // Adjust game area for mobile
-            const gameArea = document.getElementById('game-area');
-            if (gameArea) {
-                gameArea.style.height = '300px';
-            }
-            
             // Add touch feedback
             pumpButton.addEventListener('touchstart', function() {
                 this.classList.add('keyboard-active');
             });
-            
-            pumpButton.addEventListener('touchend', function(e) {
-                e.preventDefault(); // Prevent double-tap zoom
+            pumpButton.addEventListener('touchend', function() {
                 this.classList.remove('keyboard-active');
-                if (!this.disabled) {
-                    pumpBalloon();
-                }
             });
-            
             cashoutButton.addEventListener('touchstart', function() {
                 this.classList.add('keyboard-active');
             });
-            
-            cashoutButton.addEventListener('touchend', function(e) {
-                e.preventDefault(); // Prevent double-tap zoom
+            cashoutButton.addEventListener('touchend', function() {
                 this.classList.remove('keyboard-active');
-                if (!this.disabled) {
-                    collectPoints();
-                }
             });
+            
+            // Adjust game area for mobile
+            document.getElementById('game-area').style.height = '300px';
         }
         
         // Add keyboard controls
@@ -1044,9 +1066,7 @@
         keyControlsInfo.innerHTML = 'Keyboard controls: <span style="padding: 2px 6px; background: #f1f1f1; border-radius: 3px; margin: 0 3px;">Space</span> or <span style="padding: 2px 6px; background: #f1f1f1; border-radius: 3px; margin: 0 3px;">↑</span> to Pump, <span style="padding: 2px 6px; background: #f1f1f1; border-radius: 3px; margin: 0 3px;">Enter</span> or <span style="padding: 2px 6px; background: #f1f1f1; border-radius: 3px; margin: 0 3px;">↓</span> to Collect';
         
         const buttonsContainer = document.querySelector('#game-screen > div:last-child');
-        if (buttonsContainer) {
-            buttonsContainer.parentNode.insertBefore(keyControlsInfo, buttonsContainer.nextSibling);
-        }
+        buttonsContainer.parentNode.insertBefore(keyControlsInfo, buttonsContainer.nextSibling);
     }
     
     // Start the game
@@ -1072,6 +1092,13 @@
             educationDesired: educationDesired,
             date: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
+        
+        // Try to store the user ID again in case it wasn't stored earlier
+        try {
+            localStorage.setItem('risk_assessment_user_id', participantInfo.id);
+        } catch (error) {
+            console.error('Error storing user ID in localStorage:', error);
+        }
         
         // Reset game state
         currentTrial = 0;
@@ -1128,7 +1155,7 @@
         updateRiskMeter();
         
         // Check if balloon pops
-        const popProbability = POP_PROBABILITIES[currentPumps] || 0;
+        const popProbability = POP_PROBABILITIES[currentPumps];
         const randomValue = Math.random();
         
         if (randomValue < popProbability) {
@@ -1138,7 +1165,7 @@
             // Balloon gets bigger - adjust for mobile screens
             let newSize;
             
-            if (isMobileDevice()) {
+            if (window.innerWidth < 480) {
                 // Scale for mobile - increase size more dramatically to be visible
                 newSize = 100 + (currentPumps * 5);
             } else {
@@ -1447,7 +1474,7 @@
             const secondHalfPops = popHistory.slice(halfPoint).filter(popped => popped).length;
             
             // Calculate a percentage change to determine learning effect
-            const pumpPercentChange = ((secondHalfAvg - firstHalfAvg) / (firstHalfAvg || 1)) * 100;
+            const pumpPercentChange = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
             
             // Check for learning patterns
             if (pumpPercentChange > 20 && secondHalfPops <= firstHalfPops) {
@@ -1484,21 +1511,25 @@
     
     // Send results to Google Sheets
     function sendResultsToGoogleSheets(bartMetrics, careerRiskScore) {
-        // Check if script URL is set and not the placeholder
-        if (!SCRIPT_URL || SCRIPT_URL.includes('YOUR_ACTUAL_SCRIPT_ID_HERE')) {
-            showStatus('Google Sheets integration not configured. Results will only be stored locally.', 'error');
+        // Check if script URL is set - don't check for a specific value
+        if (!SCRIPT_URL || SCRIPT_URL.trim() === '') {
+            showStatus('Google Sheets integration not configured. Contact experiment administrator.', 'error');
             return;
         }
         
         // Store the current time as the last submission date
-        localStorage.setItem('risk_assessment_last_submission', new Date().toISOString());
+        try {
+            localStorage.setItem('risk_assessment_last_submission', new Date().toISOString());
+        } catch (error) {
+            console.error('Error storing submission date:', error);
+        }
         
         // Prepare data to send
         const formData = new FormData();
         
         // Add participant info
         formData.append('participantId', participantInfo.id);
-        formData.append('uniqueUserID', localStorage.getItem('risk_assessment_user_id'));
+        formData.append('uniqueUserID', localStorage.getItem('risk_assessment_user_id') || participantInfo.id);
         formData.append('age', participantInfo.age);
         formData.append('gender', participantInfo.gender);
         formData.append('educationAttained', participantInfo.educationAttained);
@@ -1544,10 +1575,10 @@
         .then(response => {
             // Since we're using no-cors mode, we can't actually read the response
             // But we can at least confirm the request was sent
-            showStatus('Results successfully saved!', 'success');
+            showStatus('Results successfully saved to database!', 'success');
         })
         .catch(error => {
-            showStatus('There was an error saving your results. Results are stored locally.', 'error');
+            showStatus('There was an error saving your results. Please inform the experiment administrator.', 'error');
             console.error('Error:', error);
         });
     }
@@ -1568,3 +1599,4 @@
     
     // Initialize the game when page loads
     window.onload = init;
+    </script>
