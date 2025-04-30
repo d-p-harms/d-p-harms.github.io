@@ -850,12 +850,22 @@
             localStorage.setItem('risk_assessment_user_id', userID);
             
             // Pre-fill the participant ID field
-            document.getElementById('participant-id').value = userID;
-            document.getElementById('participant-id').readOnly = true;
+            const participantIdField = document.getElementById('participant-id');
+            if (participantIdField) {
+                participantIdField.value = userID;
+                participantIdField.readOnly = true;
+            } else {
+                console.error("Participant ID field not found in the DOM");
+            }
         } else {
             // Returning user - use the existing ID
-            document.getElementById('participant-id').value = userID;
-            document.getElementById('participant-id').readOnly = true;
+            const participantIdField = document.getElementById('participant-id');
+            if (participantIdField) {
+                participantIdField.value = userID;
+                participantIdField.readOnly = true;
+            } else {
+                console.error("Participant ID field not found in the DOM");
+            }
             
             // Check if they've already submitted data
             if (lastSubmissionDate) {
@@ -873,8 +883,15 @@
                     warningMessage.style.marginBottom = '15px';
                     warningMessage.innerHTML = `<strong>Notice:</strong> It appears you've already completed this assessment within the past week (${daysSinceSubmission} days ago). Multiple submissions from the same participant may affect our research data. Please proceed only if instructed to do so by the researcher.`;
                     
-                    welcomeScreen.insertBefore(warningMessage, document.getElementById('info-form'));
+                    const infoForm = document.getElementById('info-form');
+                    if (infoForm && infoForm.parentNode) {
+                        infoForm.parentNode.insertBefore(warningMessage, infoForm);
+                    }
                 }
             }
         }
+        
+        // Log the current user ID for debugging
+        console.log("Current user ID:", userID);
+        return userID;
     }
