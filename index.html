@@ -401,8 +401,8 @@
                 
                 <!-- Career Goals -->
                 <div class="form-group">
-                    <label for="career-goals">What are your primary career goals for the next 5-10 years?</label>
-                    <textarea id="career-goals" required></textarea>
+                    <label for="career-goals">What are your primary career goals for the next 5-10 years? (Optional)</label>
+                    <textarea id="career-goals"></textarea>
                 </div>
                 
                 <!-- Financial Status Question -->
@@ -1095,7 +1095,7 @@
         const relocate = document.querySelector('input[name="relocate"]:checked')?.value;
         const newSkills = document.querySelector('input[name="new-skills"]:checked')?.value;
         
-        if (!position || !industry || !goals || !financialStatus || !financialSafety || !entrepreneur || !careerValue || 
+        if (!position || !industry || !financialStatus || !financialSafety || !entrepreneur || !careerValue || 
             !careerChange || !payCut || !variableComp || !relocate || !newSkills) {
             alert('Please answer all questions.');
             return;
