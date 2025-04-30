@@ -252,6 +252,52 @@
             transform: scale(0.95);
             box-shadow: 0 0 0 3px rgba(0,0,0,0.2);
         }
+        @media (max-width: 768px) {
+        body {
+            padding: 10px;
+        }
+        
+        #container {
+            width: 95%;
+            padding: 15px;
+        }
+        
+        #game-area {
+            height: 300px;
+        }
+        
+        .button {
+            width: 45%;
+            margin: 8px 2.5%;
+            font-size: 18px;
+        }
+        
+        #instructions {
+            font-size: 0.9em;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .likert-scale {
+            flex-wrap: wrap;
+        }
+        
+        .likert-option, .likert-label {
+            width: 20%;
+            font-size: 12px;
+        }
+        
+        table {
+            font-size: 0.85em;
+        }
+        
+        th, td {
+            padding: 6px;
+        }
+    }
+    
     </style>
 </head>
 <body>
@@ -742,10 +788,11 @@
     </div>
     <script>
     // BART Task Configuration
-    const MAX_PUMPS = 128;  // Maximum possible pumps per balloon
+    const MAX_PUMPS = 30;  // Maximum possible pumps per balloon (changed from 128)
     const NUM_TRIALS = 10;   // Total number of balloons
     const POP_PROBABILITIES = [];  // Will be calculated on initialization
-    const SAFE_ZONE_PUMPS = 10;  // First 10 pumps are 100% safe
+    const SAFE_ZONE_PUMPS = 5;  // First 5 pumps are 100% safe (changed from 10)
+
     
     // Game state
     let totalPoints = 0;
@@ -777,57 +824,52 @@
     
     // Calculate pop probabilities for each pump - with complex probability distribution
     function initializePopProbabilities() {
-        // First 10 pumps have zero probability (safe zone)
-        for (let i = 1; i <= SAFE_ZONE_PUMPS; i++) {
+            for (let i = 1; i <= SAFE_ZONE_PUMPS; i++) {
             POP_PROBABILITIES[i] = 0; // 0% chance (safe zone)
         }
         
-        // Pumps 11-15 have extremely low probability
-        for (let i = SAFE_ZONE_PUMPS + 1; i <= 15; i++) {
-            POP_PROBABILITIES[i] = 0.01; // Fixed 1% chance
+        // Pumps 6-10 have very low probability
+        for (let i = SAFE_ZONE_PUMPS + 1; i <= 10; i++) {
+            POP_PROBABILITIES[i] = 0.02; // Fixed 2% chance
         }
         
-        // Pumps 16-30 have gradually increasing but still low probability
-        for (let i = 16; i <= 30; i++) {
-            // Gradually increase from 1% to 5%
-            POP_PROBABILITIES[i] = 0.01 + (i - 15) * 0.003;
+        // Pumps 11-20 have moderate probability
+        for (let i = 11; i <= 20; i++) {
+            // Gradually increase from 5% to 20%
+            POP_PROBABILITIES[i] = 0.05 + (i - 11) * 0.015;
         }
         
-        // Pumps 31-60 have moderate probability
-        for (let i = 31; i <= 60; i++) {
-            // Gradually increase from 5% to 15%
-            POP_PROBABILITIES[i] = 0.05 + (i - 30) * 0.0033;
-        }
-        
-        // Pumps 61+ have higher probability
-        for (let i = 61; i <= MAX_PUMPS; i++) {
-            // Gradually increase from 15% to 60% at the maximum
-            POP_PROBABILITIES[i] = 0.15 + (i - 60) * 0.0066;
+        // Pumps 21-30 have high probability
+        for (let i = 21; i <= MAX_PUMPS; i++) {
+            // Gradually increase from 20% to 50%
+            POP_PROBABILITIES[i] = 0.20 + (i - 21) * 0.03;
         }
     }
     
     // Update the risk meter based on current pump count
     function updateRiskMeter() {
-        // Calculate position for the risk pointer based on pump count
+            // Calculate position for the risk pointer based on pump count
         // Scale to make it more visible - map from 0-MAX_PUMPS to 0-100%
         let pointerPosition;
         
-        if (currentPumps <= 15) {
-            // First 15 pumps - scale position from 0% to 37.5% (green zone)
-            pointerPosition = (currentPumps / 15) * 37.5;
-        } else if (currentPumps <= 30) {
-            // Pumps 16-30 - scale position from 37.5% to 75% (yellow zone)
-            pointerPosition = 37.5 + ((currentPumps - 15) / 15) * 37.5;
+        if (currentPumps <= 10) {
+            // First 10 pumps - scale position from 0% to 37.5% (green zone)
+            // First 5 are completely safe, next 5 have very low risk
+            pointerPosition = (currentPumps / 10) * 37.5;
+        } else if (currentPumps <= 20) {
+            // Pumps 11-20 - scale position from 37.5% to 75% (yellow zone)
+            pointerPosition = 37.5 + ((currentPumps - 10) / 10) * 37.5;
         } else {
-            // Pumps 31+ - scale position from 75% to 100% (red zone)
+            // Pumps 21-30 - scale position from 75% to 100% (red zone)
             // Cap at 98% to keep the pointer visible
-            const remaining = Math.min((currentPumps - 30) / (MAX_PUMPS - 30), 0.98);
+            const remaining = Math.min((currentPumps - 20) / 10, 0.98);
             pointerPosition = 75 + (remaining * 25);
         }
         
         // Update the risk pointer position
         riskPointer.style.left = pointerPosition + '%';
     }
+
     
     // Google Sheets Script URL - REPLACE THIS WITH YOUR SCRIPT URL
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyJMxpRPLv0C1YM4liLZFgcJcoySz_C0XeNp2xLzanePTubN7HA1gqLaJg488MaHn7/exec';
@@ -889,7 +931,32 @@
         cashoutButton.addEventListener('click', collectPoints);
         submitCareerButton.addEventListener('click', submitCareerForm);
         restartButton.addEventListener('click', restart);
-        
+        if (isMobileDevice()) {
+            // Make buttons more touch-friendly
+            const buttons = document.querySelectorAll('.button');
+            buttons.forEach(button => {
+                button.style.padding = '12px 20px';
+                button.style.fontSize = '18px';
+                button.style.margin = '10px 5px';
+            });
+            
+            // Add touch feedback
+            pumpButton.addEventListener('touchstart', function() {
+                this.classList.add('keyboard-active');
+            });
+            pumpButton.addEventListener('touchend', function() {
+                this.classList.remove('keyboard-active');
+            });
+            cashoutButton.addEventListener('touchstart', function() {
+                this.classList.add('keyboard-active');
+            });
+            cashoutButton.addEventListener('touchend', function() {
+                this.classList.remove('keyboard-active');
+            });
+            
+            // Adjust game area for mobile
+            document.getElementById('game-area').style.height = '300px';
+        }
         // Add keyboard controls
         document.addEventListener('keydown', function(event) {
             if (!gameScreen.style.display || gameScreen.style.display === 'none') {
@@ -929,7 +996,11 @@
         const buttonsContainer = document.querySelector('#game-screen > div:last-child');
         buttonsContainer.parentNode.insertBefore(keyControlsInfo, buttonsContainer.nextSibling);
     }
-    
+    function isMobileDevice() {
+        return (window.innerWidth <= 768 || 
+                navigator.maxTouchPoints > 0 || 
+                /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    }
     // Start the game
     function startGame() {
         // Validate form
@@ -1016,8 +1087,17 @@
             // Balloon pops
             popBalloon();
         } else {
-            // Balloon gets bigger
-            const newSize = 100 + (currentPumps * 3);
+            // Balloon gets bigger - adjust for mobile screens
+            let newSize;
+            
+            if (window.innerWidth < 480) {
+                // Scale for mobile - increase size more dramatically to be visible
+                newSize = 100 + (currentPumps * 5);
+            } else {
+                // Scale for desktop - original formula but adjusted for max 30 pumps
+                newSize = 100 + (currentPumps * 6);
+            }
+            
             balloon.style.width = `${newSize}px`;
             balloon.style.height = `${newSize * 1.5}px`;
             
@@ -1025,6 +1105,7 @@
             pointsMessage.textContent = `Points for this balloon: ${currentPumps}`;
         }
     }
+
     
     // Pop the balloon
     function popBalloon() {
