@@ -58,6 +58,12 @@
             margin: 10px 0;
             min-height: 4em;
         }
+        #total-points-message {
+            font-size: 1.1em;
+            margin: 5px 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
         #instructions {
             margin: 15px 0;
             font-size: 0.9em;
@@ -252,6 +258,16 @@
             transform: scale(0.95);
             box-shadow: 0 0 0 3px rgba(0,0,0,0.2);
         }
+        @keyframes pointsAdded {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .points-added {
+            animation: pointsAdded 0.5s ease;
+            color: #4CAF50 !important;
+        }
         @media (max-width: 768px) {
         body {
             padding: 10px;
@@ -390,6 +406,7 @@
             
             <div id="message">Trial 1 of 10</div>
             <div id="points-message">Points for this balloon: 0</div>
+            <div id="total-points-message">Total points earned: 0</div>
             <div id="instructions">Press "Pump" to inflate the balloon or "Collect Points" to bank your current points</div>
             
             <div>
@@ -800,6 +817,11 @@
     let currentPumps = 0;
     let pumpsHistory = [];
     let popHistory = [];
+    // Reset total points display
+    if (totalPointsMessage) {
+        totalPointsMessage.textContent = `Total points earned: 0`;
+        totalPointsMessage.style.color = '#4CAF50';
+    }
     let gameActive = false;
     let participantInfo = {};
     let careerResponses = {};
@@ -821,6 +843,7 @@
     const progress = document.getElementById('progress');
     const statusMessage = document.getElementById('status-message');
     const riskPointer = document.getElementById('risk-pointer');
+    const totalPointsMessage = document.getElementById('total-points-message');
     
     // Calculate pop probabilities for each pump - with complex probability distribution
     function initializePopProbabilities() {
@@ -830,7 +853,7 @@
         
         // Pumps 6-10 have very low probability
         for (let i = SAFE_ZONE_PUMPS + 1; i <= 10; i++) {
-            POP_PROBABILITIES[i] = 0.02; // Fixed 2% chance
+            POP_PROBABILITIES[i] = 0.05; // Fixed 2% chance
         }
         
         // Pumps 11-20 have moderate probability
@@ -1050,6 +1073,9 @@
         // Update the message in the HTML
         message.textContent = `Trial ${currentTrial} of ${NUM_TRIALS}`;
         pointsMessage.textContent = `Points for this balloon: 0`;
+        totalPointsMessage.textContent = `Total points earned: ${totalPoints}`;
+
+
         
         // Reset balloon
         balloon.style.width = '100px';
@@ -1119,6 +1145,9 @@
         popImage.style.display = 'block';
         message.textContent = 'BALLOON POPPED! Points lost.';
         pointsMessage.textContent = 'Points for this balloon: 0';
+        totalPointsMessage.textContent = `Total points earned: ${totalPoints}`;
+
+
         
         // Disable pump button, enable cashout for next trial
         pumpButton.disabled = true;
@@ -1140,6 +1169,13 @@
         
         // Update UI
         message.textContent = `You collected ${currentPumps} points!`;
+        totalPointsMessage.textContent = `Total points earned: ${totalPoints}`;
+        totalPointsMessage.classList.add('points-added');
+        
+        // Remove animation class after animation completes
+        setTimeout(() => {
+            totalPointsMessage.classList.remove('points-added');
+        }, 500);
         
         // Disable buttons
         pumpButton.disabled = true;
