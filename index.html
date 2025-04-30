@@ -876,7 +876,7 @@
             pointerPosition = (currentPumps / 5) * 37.5;
         } else if (currentPumps <= 20) {
             // Pumps 11-20 - scale position from 37.5% to 75% (yellow zone)
-            pointerPosition = 37.5 + ((currentPumps - 10) / 10) * 37.5;
+            pointerPosition = 37.5 + ((currentPumps - 5) / 15) * 37.5;
         } else {
             // Pumps 21-30 - scale position from 75% to 100% (red zone)
             // Cap at 98% to keep the pointer visible
