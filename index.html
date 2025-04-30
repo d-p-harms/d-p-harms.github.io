@@ -742,7 +742,7 @@
     </div>
     <script>
     // BART Task Configuration
-    const MAX_PUMPS = 60;  // Maximum possible pumps per balloon
+    const MAX_PUMPS = 30;  // Maximum possible pumps per balloon
     const NUM_TRIALS = 10;   // Total number of balloons
     const POP_PROBABILITIES = [];  // Will be calculated on initialization
     const SAFE_ZONE_PUMPS = 5;  // First 10 pumps are 100% safe
@@ -777,32 +777,32 @@
     
     // Calculate pop probabilities for each pump - with complex probability distribution
     function initializePopProbabilities() {
-        // First 10 pumps have zero probability (safe zone)
+        // First 5 pumps have zero probability (safe zone)
         for (let i = 1; i <= SAFE_ZONE_PUMPS; i++) {
             POP_PROBABILITIES[i] = 0; // 0% chance (safe zone)
         }
         
-        // Pumps 11-15 have extremely low probability
+        // Pumps 5-10 have extremely low probability
         for (let i = SAFE_ZONE_PUMPS + 1; i <= 10; i++) {
             POP_PROBABILITIES[i] = 0.01; // Fixed 1% chance
         }
         
-        // Pumps 16-30 have gradually increasing but still low probability
+        // Pumps 10-15 have gradually increasing but still low probability
         for (let i = 11; i <= 15; i++) {
             // Gradually increase from 1% to 5%
-            POP_PROBABILITIES[i] = 0.01 + (i - 15) * 0.003;
+            POP_PROBABILITIES[i] = 0.01 + (i - 10) * 0.003;
         }
         
-        // Pumps 31-60 have moderate probability
+        // Pumps 16-20 have moderate probability
         for (let i = 16; i <= 20; i++) {
             // Gradually increase from 5% to 15%
-            POP_PROBABILITIES[i] = 0.05 + (i - 30) * 0.0033;
+            POP_PROBABILITIES[i] = 0.05 + (i - 20) * 0.0033;
         }
         
         // Pumps 61+ have higher probability
         for (let i = 20; i <= MAX_PUMPS; i++) {
             // Gradually increase from 15% to 60% at the maximum
-            POP_PROBABILITIES[i] = 0.15 + (i - 60) * 0.0066;
+            POP_PROBABILITIES[i] = 0.15 + (i - 30) * 0.0066;
         }
     }
     
@@ -815,8 +815,8 @@
         if (currentPumps <= 5) {
             // First 15 pumps - scale position from 0% to 37.5% (green zone)
             pointerPosition = (currentPumps / 5) * 37.5;
-        } else if (currentPumps <= 15) {
-            // Pumps 16-30 - scale position from 37.5% to 75% (yellow zone)
+        } else if (currentPumps <= 20) {
+            // Pumps 5-20 - scale position from 37.5% to 75% (yellow zone)
             pointerPosition = 37.5 + ((currentPumps - 5) / 15) * 37.5;
         } else {
             // Pumps 31+ - scale position from 75% to 100% (red zone)
