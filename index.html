@@ -344,6 +344,7 @@
             
             <div id="message">Trial 1 of 10</div>
             <div id="points-message">Points for this balloon: 0</div>
+            <div id="total-points-display" style="font-size: 1.2em; margin: 10px 0; font-weight: bold; color: #2196F3;">Total points: 0</div>
             <div id="instructions">Press "Pump" to inflate the balloon or "Collect Points" to bank your current points</div>
             
             <div>
@@ -771,6 +772,7 @@
     const popImage = document.getElementById('pop-image');
     const message = document.getElementById('message');
     const pointsMessage = document.getElementById('points-message');
+    const totalPointsDisplay = document.getElementById('total-points-display');
     const progress = document.getElementById('progress');
     const statusMessage = document.getElementById('status-message');
     const riskPointer = document.getElementById('risk-pointer');
@@ -784,25 +786,25 @@
         
         // Pumps 6-10 have extremely low probability
         for (let i = SAFE_ZONE_PUMPS + 1; i <= 10; i++) {
-            POP_PROBABILITIES[i] = 0.1; // Fixed 1% chance
+            POP_PROBABILITIES[i] = 0.01; // Fixed 1% chance
         }
         
         // Pumps 11-15 have gradually increasing but still low probability
         for (let i = 11; i <= 15; i++) {
             // Gradually increase from 1% to 5%
-            POP_PROBABILITIES[i] = 0.1 + (i - 10) * 0.01;
+            POP_PROBABILITIES[i] = 0.01 + (i - 10) * 0.008;
         }
         
         // Pumps 16-20 have moderate probability
         for (let i = 16; i <= 20; i++) {
             // Gradually increase from 5% to 15%
-            POP_PROBABILITIES[i] = 0.1 + (i - 15) * 0.04;
+            POP_PROBABILITIES[i] = 0.05 + (i - 15) * 0.02;
         }
         
         // Pumps 21-30 have higher probability
         for (let i = 21; i <= MAX_PUMPS; i++) {
             // Gradually increase from 15% to 60% at the maximum
-            POP_PROBABILITIES[i] = 0.3 + (i - 20) * 0.06;
+            POP_PROBABILITIES[i] = 0.15 + (i - 20) * 0.045;
         }
     }
     
