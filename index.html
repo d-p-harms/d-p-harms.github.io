@@ -745,7 +745,7 @@
     const MAX_PUMPS = 128;  // Maximum possible pumps per balloon
     const NUM_TRIALS = 10;   // Total number of balloons
     const POP_PROBABILITIES = [];  // Will be calculated on initialization
-    const SAFE_ZONE_PUMPS = 5;  // First 10 pumps are 100% safe
+    const SAFE_ZONE_PUMPS = 10;  // First 10 pumps are 100% safe
     
     // Game state
     let totalPoints = 0;
@@ -777,56 +777,55 @@
     
     // Calculate pop probabilities for each pump - with complex probability distribution
     function initializePopProbabilities() {
-    // First 5 pumps have zero probability (safe zone)
+        // First 10 pumps have zero probability (safe zone)
         for (let i = 1; i <= SAFE_ZONE_PUMPS; i++) {
             POP_PROBABILITIES[i] = 0; // 0% chance (safe zone)
         }
-    
-    // Pumps 6-10 have extremely low probability (changed from 11-15)
-        for (let i = SAFE_ZONE_PUMPS + 1; i <= 10; i++) {
+        
+        // Pumps 11-15 have extremely low probability
+        for (let i = SAFE_ZONE_PUMPS + 1; i <= 15; i++) {
             POP_PROBABILITIES[i] = 0.01; // Fixed 1% chance
         }
-    
-    // Pumps 11-25 have gradually increasing but still low probability (changed from 16-30)
-        for (let i = 11; i <= 25; i++) {
-        // Gradually increase from 1% to 5%
-            POP_PROBABILITIES[i] = 0.01 + (i - 10) * 0.0027; // Adjusted calculation
+        
+        // Pumps 16-30 have gradually increasing but still low probability
+        for (let i = 16; i <= 30; i++) {
+            // Gradually increase from 1% to 5%
+            POP_PROBABILITIES[i] = 0.01 + (i - 15) * 0.003;
         }
-    
-    // Pumps 26-55 have moderate probability (changed from 31-60)
-        for (let i = 26; i <= 55; i++) {
-        // Gradually increase from 5% to 15%
-            POP_PROBABILITIES[i] = 0.05 + (i - 25) * 0.0033;
+        
+        // Pumps 31-60 have moderate probability
+        for (let i = 31; i <= 60; i++) {
+            // Gradually increase from 5% to 15%
+            POP_PROBABILITIES[i] = 0.05 + (i - 30) * 0.0033;
         }
-    
-    // Pumps 56+ have higher probability (changed from 61+)
-        for (let i = 56; i <= MAX_PUMPS; i++) {
-        // Gradually increase from 15% to 60% at the maximum
-            POP_PROBABILITIES[i] = 0.15 + (i - 55) * 0.0062; // Adjusted calculation
+        
+        // Pumps 61+ have higher probability
+        for (let i = 61; i <= MAX_PUMPS; i++) {
+            // Gradually increase from 15% to 60% at the maximum
+            POP_PROBABILITIES[i] = 0.15 + (i - 60) * 0.0066;
         }
     }
     
     // Update the risk meter based on current pump count
     function updateRiskMeter() {
-    // Calculate position for the risk pointer based on pump count
-    // Scale to make it more visible - map from 0-MAX_PUMPS to 0-100%
+        // Calculate position for the risk pointer based on pump count
+        // Scale to make it more visible - map from 0-MAX_PUMPS to 0-100%
         let pointerPosition;
-    
-        if (currentPumps <= 10) {
-        // First 10 pumps - scale position from 0% to 37.5% (green zone)
-        // First 5 are completely safe, next 5 have very low risk
-            pointerPosition = (currentPumps / 10) * 37.5;
-        } else if (currentPumps <= 25) {
-        // Pumps 11-25 - scale position from 37.5% to 75% (yellow zone)
-            pointerPosition = 37.5 + ((currentPumps - 10) / 15) * 37.5;
+        
+        if (currentPumps <= 15) {
+            // First 15 pumps - scale position from 0% to 37.5% (green zone)
+            pointerPosition = (currentPumps / 15) * 37.5;
+        } else if (currentPumps <= 30) {
+            // Pumps 16-30 - scale position from 37.5% to 75% (yellow zone)
+            pointerPosition = 37.5 + ((currentPumps - 15) / 15) * 37.5;
         } else {
-        // Pumps 26+ - scale position from 75% to 100% (red zone)
-        // Cap at 98% to keep the pointer visible
-            const remaining = Math.min((currentPumps - 25) / (MAX_PUMPS - 25), 0.98);
+            // Pumps 31+ - scale position from 75% to 100% (red zone)
+            // Cap at 98% to keep the pointer visible
+            const remaining = Math.min((currentPumps - 30) / (MAX_PUMPS - 30), 0.98);
             pointerPosition = 75 + (remaining * 25);
         }
-    
-    // Update the risk pointer position
+        
+        // Update the risk pointer position
         riskPointer.style.left = pointerPosition + '%';
     }
     
