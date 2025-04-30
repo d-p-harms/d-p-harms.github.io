@@ -344,7 +344,6 @@
             
             <div id="message">Trial 1 of 10</div>
             <div id="points-message">Points for this balloon: 0</div>
-            <div id="total-points-display" style="font-size: 1.2em; margin: 10px 0; font-weight: bold; color: #2196F3;">Total points: 0</div>
             <div id="instructions">Press "Pump" to inflate the balloon or "Collect Points" to bank your current points</div>
             
             <div>
@@ -772,7 +771,6 @@
     const popImage = document.getElementById('pop-image');
     const message = document.getElementById('message');
     const pointsMessage = document.getElementById('points-message');
-    const totalPointsDisplay = document.getElementById('total-points-display');
     const progress = document.getElementById('progress');
     const statusMessage = document.getElementById('status-message');
     const riskPointer = document.getElementById('risk-pointer');
@@ -850,22 +848,12 @@
             localStorage.setItem('risk_assessment_user_id', userID);
             
             // Pre-fill the participant ID field
-            const participantIdField = document.getElementById('participant-id');
-            if (participantIdField) {
-                participantIdField.value = userID;
-                participantIdField.readOnly = true;
-            } else {
-                console.error("Participant ID field not found in the DOM");
-            }
+            document.getElementById('participant-id').value = userID;
+            document.getElementById('participant-id').readOnly = true;
         } else {
             // Returning user - use the existing ID
-            const participantIdField = document.getElementById('participant-id');
-            if (participantIdField) {
-                participantIdField.value = userID;
-                participantIdField.readOnly = true;
-            } else {
-                console.error("Participant ID field not found in the DOM");
-            }
+            document.getElementById('participant-id').value = userID;
+            document.getElementById('participant-id').readOnly = true;
             
             // Check if they've already submitted data
             if (lastSubmissionDate) {
@@ -883,15 +871,8 @@
                     warningMessage.style.marginBottom = '15px';
                     warningMessage.innerHTML = `<strong>Notice:</strong> It appears you've already completed this assessment within the past week (${daysSinceSubmission} days ago). Multiple submissions from the same participant may affect our research data. Please proceed only if instructed to do so by the researcher.`;
                     
-                    const infoForm = document.getElementById('info-form');
-                    if (infoForm && infoForm.parentNode) {
-                        infoForm.parentNode.insertBefore(warningMessage, infoForm);
-                    }
+                    welcomeScreen.insertBefore(warningMessage, document.getElementById('info-form'));
                 }
             }
         }
-        
-        // Log the current user ID for debugging
-        console.log("Current user ID:", userID);
-        return userID;
     }
