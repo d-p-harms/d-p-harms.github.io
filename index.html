@@ -742,7 +742,7 @@
     </div>
     <script>
     // BART Task Configuration
-    const MAX_PUMPS = 30;  // Maximum possible pumps per balloon
+    debug: const MAX_PUMPS = 30;  // Maximum possible pumps per balloon
     const NUM_TRIALS = 10;   // Total number of balloons
     const POP_PROBABILITIES = [];  // Will be calculated on initialization
     const SAFE_ZONE_PUMPS = 5;  // First 10 pumps are 100% safe
@@ -776,25 +776,34 @@
     const riskPointer = document.getElementById('risk-pointer');
     
     // Calculate pop probabilities for each pump - with complex probability distribution
-    initialize_pop_probabilities <- function(max_pumps = MAX_PUMPS, safe_zone = SAFE_ZONE_PUMPS) {
-      pop_probs <- numeric(max_pumps)
-  
-      # 1–5: Safe zone (0% probability)
-      pop_probs[1:safe_zone] <- 0
-  
-      # 6–10: Fixed low risk (10%)
-      pop_probs[(safe_zone + 1):10] <- 0.10
-  
-      # 11–15: Linearly increasing from 10% to 20%
-      pop_probs[11:15] <- seq(0.10, 0.20, length.out = 5)
-  
-      # 16–20: Linearly increasing from 20% to 25%
-      pop_probs[16:20] <- seq(0.20, 0.25, length.out = 5)
-  
-      # 21–30: Linearly increasing from 25% to 60%
-      pop_probs[21:30] <- seq(0.25, 0.60, length.out = max_pumps - 20)
-  
-      return(pop_probs)
+    function initializePopProbabilities() {
+        // First 5 pumps have zero probability (safe zone)
+        for (let i = 1; i <= SAFE_ZONE_PUMPS; i++) {
+            POP_PROBABILITIES[i] = 0; // 0% chance (safe zone)
+        }
+        
+        // Pumps 5-10 have extremely low probability
+        for (let i = SAFE_ZONE_PUMPS + 1; i <= 10; i++) {
+            POP_PROBABILITIES[i] = 0.1; // Fixed 10% chance
+        }
+        
+        // Pumps 10-15 have gradually increasing but still low probability
+        for (let i = 11; i <= 15; i++) {
+            // Gradually increase from 10% to 20%
+            POP_PROBABILITIES[i] = 0.1 + (i - 15) * 0.012;
+        }
+        
+        // Pumps 15-20 have moderate probability
+        for (let i = 15; i <= 20; i++) {
+            // Gradually increase from 20% to 25%
+            POP_PROBABILITIES[i] = 0.2 + (i - 20) * 0.0044;
+        }
+        
+        // Pumps 20+ have higher probability
+        for (let i = 20; i <= MAX_PUMPS; i++) {
+            // Gradually increase from 15% to 60% at the maximum
+            POP_PROBABILITIES[i] = 0.25 + (i - 20) * 0.0066;
+        }
     }
     
     // Update the risk meter based on current pump count
