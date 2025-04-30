@@ -269,51 +269,50 @@
             color: #4CAF50 !important;
         }
         @media (max-width: 768px) {
-        body {
-            padding: 10px;
+            body {
+                padding: 10px;
+            }
+            
+            #container {
+                width: 95%;
+                padding: 15px;
+            }
+            
+            #game-area {
+                height: 300px;
+            }
+            
+            .button {
+                width: 45%;
+                margin: 8px 2.5%;
+                font-size: 18px;
+            }
+            
+            #instructions {
+                font-size: 0.9em;
+            }
+            
+            .form-group {
+                margin-bottom: 12px;
+            }
+            
+            .likert-scale {
+                flex-wrap: wrap;
+            }
+            
+            .likert-option, .likert-label {
+                width: 20%;
+                font-size: 12px;
+            }
+            
+            table {
+                font-size: 0.85em;
+            }
+            
+            th, td {
+                padding: 6px;
+            }
         }
-        
-        #container {
-            width: 95%;
-            padding: 15px;
-        }
-        
-        #game-area {
-            height: 300px;
-        }
-        
-        .button {
-            width: 45%;
-            margin: 8px 2.5%;
-            font-size: 18px;
-        }
-        
-        #instructions {
-            font-size: 0.9em;
-        }
-        
-        .form-group {
-            margin-bottom: 12px;
-        }
-        
-        .likert-scale {
-            flex-wrap: wrap;
-        }
-        
-        .likert-option, .likert-label {
-            width: 20%;
-            font-size: 12px;
-        }
-        
-        table {
-            font-size: 0.85em;
-        }
-        
-        th, td {
-            padding: 6px;
-        }
-    }
-    
     </style>
 </head>
 <body>
@@ -346,6 +345,8 @@
                         <option value="">Please select</option>
                         <option value="female">Female</option>
                         <option value="male">Male</option>
+                        <option value="other">Other</option>
+                        <option value="prefer_not_to_say">Prefer not to say</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -807,7 +808,9 @@
     const NUM_TRIALS = 10;   // Total number of balloons
     const POP_PROBABILITIES = [];  // Will be calculated on initialization
     const SAFE_ZONE_PUMPS = 5;  // First 5 pumps are 100% safe (changed from 10)
-
+    
+    // Insert your Google Sheets Script URL here (this is a placeholder - replace with your actual endpoint)
+    const SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_ACTUAL_SCRIPT_ID_HERE/exec';
     
     // Game state
     let totalPoints = 0;
@@ -841,13 +844,19 @@
     
     // Calculate pop probabilities for each pump - with complex probability distribution
     function initializePopProbabilities() {
-            for (let i = 1; i <= SAFE_ZONE_PUMPS; i++) {
-            POP_PROBABILITIES[i] = 0; // 0% chance (safe zone)
+        // Reset the array to ensure clean initialization
+        for (let i = 0; i <= MAX_PUMPS; i++) {
+            POP_PROBABILITIES[i] = 0;
+        }
+        
+        // Safe zone - 0% chance of popping
+        for (let i = 1; i <= SAFE_ZONE_PUMPS; i++) {
+            POP_PROBABILITIES[i] = 0;
         }
         
         // Pumps 6-10 have very low probability
         for (let i = SAFE_ZONE_PUMPS + 1; i <= 10; i++) {
-            POP_PROBABILITIES[i] = 0.05; // Fixed 2% chance
+            POP_PROBABILITIES[i] = 0.05; // Fixed 5% chance
         }
         
         // Pumps 11-20 have moderate probability
@@ -865,13 +874,11 @@
     
     // Update the risk meter based on current pump count
     function updateRiskMeter() {
-            // Calculate position for the risk pointer based on pump count
-        // Scale to make it more visible - map from 0-MAX_PUMPS to 0-100%
+        // Calculate position for the risk pointer based on pump count
         let pointerPosition;
         
         if (currentPumps <= 10) {
             // First 10 pumps - scale position from 0% to 37.5% (green zone)
-            // First 5 are completely safe, next 5 have very low risk
             pointerPosition = (currentPumps / 10) * 37.5;
         } else if (currentPumps <= 20) {
             // Pumps 11-20 - scale position from 37.5% to 75% (yellow zone)
@@ -886,12 +893,7 @@
         // Update the risk pointer position
         riskPointer.style.left = pointerPosition + '%';
     }
-
-    // Reset total points display
     
-    // Google Sheets Script URL - REPLACE THIS WITH YOUR SCRIPT URL
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyJMxpRPLv0C1YM4liLZFgcJcoySz_C0XeNp2xLzanePTubN7HA1gqLaJg488MaHn7/exec';
-     
     // Generate a unique ID
     function generateUniqueID() {
         return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -937,6 +939,13 @@
         }
     }
     
+    // Check if device is mobile
+    function isMobileDevice() {
+        return (window.innerWidth <= 768 || 
+                navigator.maxTouchPoints > 0 || 
+                /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    }
+    
     // Initialize the game
     function init() {
         initializePopProbabilities();
@@ -944,31 +953,21 @@
         // Generate or retrieve unique user ID
         checkForExistingUser();
         
+        // Add event listeners
         startButton.addEventListener('click', startGame);
         pumpButton.addEventListener('click', pumpBalloon);
         cashoutButton.addEventListener('click', collectPoints);
         submitCareerButton.addEventListener('click', submitCareerForm);
         restartButton.addEventListener('click', restart);
+        
+        // Initialize total points display
         if (totalPointsMessage) {
             totalPointsMessage.textContent = `Total points earned: 0`;
-            totalPointsMessage.style.color = '#4CAF50';
         }
-        pumpButton.addEventListener('touchend', function(e) {
-            e.preventDefault(); // Prevent double-tap zoom
-            if (!pumpButton.disabled) {
-                pumpBalloon();
-            }
-        });
         
-        cashoutButton.addEventListener('touchend', function(e) {
-            e.preventDefault(); // Prevent double-tap zoom
-            if (!cashoutButton.disabled) {
-                collectPoints();
-            }
-        });
-        
+        // Only add touch event listeners if they don't already exist
         if (isMobileDevice()) {
-            // Make buttons more touch-friendly
+            // Mobile optimizations
             const buttons = document.querySelectorAll('.button');
             buttons.forEach(button => {
                 button.style.padding = '12px 20px';
@@ -976,58 +975,38 @@
                 button.style.margin = '10px 5px';
             });
             
-            // Add touch feedback
-            pumpButton.addEventListener('touchstart', function() {
-                this.classList.add('keyboard-active');
-            });
-            pumpButton.addEventListener('touchend', function() {
-                this.classList.remove('keyboard-active');
-            });
-            cashoutButton.addEventListener('touchstart', function() {
-                this.classList.add('keyboard-active');
-            });
-            cashoutButton.addEventListener('touchend', function() {
-                this.classList.remove('keyboard-active');
-            });
-            
             // Adjust game area for mobile
-            document.getElementById('game-area').style.height = '300px';
-        }
-        
-        // Add keyboard controls - REST OF FUNCTION REMAINS THE SAME
-        document.addEventListener('keydown', function(event) {
-            // ... existing code ...
-        });
-        
-        // Add key control instructions to the game screen
-        const keyControlsInfo = document.createElement('div');
-        
-        if (isMobileDevice()) {
-            // Make buttons more touch-friendly
-            const buttons = document.querySelectorAll('.button');
-            buttons.forEach(button => {
-                button.style.padding = '12px 20px';
-                button.style.fontSize = '18px';
-                button.style.margin = '10px 5px';
-            });
+            const gameArea = document.getElementById('game-area');
+            if (gameArea) {
+                gameArea.style.height = '300px';
+            }
             
             // Add touch feedback
             pumpButton.addEventListener('touchstart', function() {
                 this.classList.add('keyboard-active');
             });
-            pumpButton.addEventListener('touchend', function() {
+            
+            pumpButton.addEventListener('touchend', function(e) {
+                e.preventDefault(); // Prevent double-tap zoom
                 this.classList.remove('keyboard-active');
+                if (!this.disabled) {
+                    pumpBalloon();
+                }
             });
+            
             cashoutButton.addEventListener('touchstart', function() {
                 this.classList.add('keyboard-active');
             });
-            cashoutButton.addEventListener('touchend', function() {
-                this.classList.remove('keyboard-active');
-            });
             
-            // Adjust game area for mobile
-            document.getElementById('game-area').style.height = '300px';
+            cashoutButton.addEventListener('touchend', function(e) {
+                e.preventDefault(); // Prevent double-tap zoom
+                this.classList.remove('keyboard-active');
+                if (!this.disabled) {
+                    collectPoints();
+                }
+            });
         }
+        
         // Add keyboard controls
         document.addEventListener('keydown', function(event) {
             if (!gameScreen.style.display || gameScreen.style.display === 'none') {
@@ -1065,13 +1044,11 @@
         keyControlsInfo.innerHTML = 'Keyboard controls: <span style="padding: 2px 6px; background: #f1f1f1; border-radius: 3px; margin: 0 3px;">Space</span> or <span style="padding: 2px 6px; background: #f1f1f1; border-radius: 3px; margin: 0 3px;">↑</span> to Pump, <span style="padding: 2px 6px; background: #f1f1f1; border-radius: 3px; margin: 0 3px;">Enter</span> or <span style="padding: 2px 6px; background: #f1f1f1; border-radius: 3px; margin: 0 3px;">↓</span> to Collect';
         
         const buttonsContainer = document.querySelector('#game-screen > div:last-child');
-        buttonsContainer.parentNode.insertBefore(keyControlsInfo, buttonsContainer.nextSibling);
+        if (buttonsContainer) {
+            buttonsContainer.parentNode.insertBefore(keyControlsInfo, buttonsContainer.nextSibling);
+        }
     }
-    function isMobileDevice() {
-        return (window.innerWidth <= 768 || 
-                navigator.maxTouchPoints > 0 || 
-                /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
-    }
+    
     // Start the game
     function startGame() {
         // Validate form
@@ -1118,12 +1095,9 @@
         
         // Update UI
         currentTrial++;
-        // Update the message in the HTML
         message.textContent = `Trial ${currentTrial} of ${NUM_TRIALS}`;
         pointsMessage.textContent = `Points for this balloon: 0`;
         totalPointsMessage.textContent = `Total points earned: ${totalPoints}`;
-
-
         
         // Reset balloon
         balloon.style.width = '100px';
@@ -1154,7 +1128,7 @@
         updateRiskMeter();
         
         // Check if balloon pops
-        const popProbability = POP_PROBABILITIES[currentPumps];
+        const popProbability = POP_PROBABILITIES[currentPumps] || 0;
         const randomValue = Math.random();
         
         if (randomValue < popProbability) {
@@ -1164,7 +1138,7 @@
             // Balloon gets bigger - adjust for mobile screens
             let newSize;
             
-            if (window.innerWidth < 480) {
+            if (isMobileDevice()) {
                 // Scale for mobile - increase size more dramatically to be visible
                 newSize = 100 + (currentPumps * 5);
             } else {
@@ -1179,7 +1153,6 @@
             pointsMessage.textContent = `Points for this balloon: ${currentPumps}`;
         }
     }
-
     
     // Pop the balloon
     function popBalloon() {
@@ -1194,8 +1167,6 @@
         message.textContent = 'BALLOON POPPED! Points lost.';
         pointsMessage.textContent = 'Points for this balloon: 0';
         totalPointsMessage.textContent = `Total points earned: ${totalPoints}`;
-
-
         
         // Disable pump button, enable cashout for next trial
         pumpButton.disabled = true;
@@ -1476,7 +1447,7 @@
             const secondHalfPops = popHistory.slice(halfPoint).filter(popped => popped).length;
             
             // Calculate a percentage change to determine learning effect
-            const pumpPercentChange = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
+            const pumpPercentChange = ((secondHalfAvg - firstHalfAvg) / (firstHalfAvg || 1)) * 100;
             
             // Check for learning patterns
             if (pumpPercentChange > 20 && secondHalfPops <= firstHalfPops) {
@@ -1513,9 +1484,9 @@
     
     // Send results to Google Sheets
     function sendResultsToGoogleSheets(bartMetrics, careerRiskScore) {
-        // Check if script URL is set - don't check for a specific value
-        if (!SCRIPT_URL || SCRIPT_URL.trim() === '') {
-            showStatus('Google Sheets integration not configured. Contact experiment administrator.', 'error');
+        // Check if script URL is set and not the placeholder
+        if (!SCRIPT_URL || SCRIPT_URL.includes('YOUR_ACTUAL_SCRIPT_ID_HERE')) {
+            showStatus('Google Sheets integration not configured. Results will only be stored locally.', 'error');
             return;
         }
         
@@ -1573,10 +1544,10 @@
         .then(response => {
             // Since we're using no-cors mode, we can't actually read the response
             // But we can at least confirm the request was sent
-            showStatus('Results successfully saved to database!', 'success');
+            showStatus('Results successfully saved!', 'success');
         })
         .catch(error => {
-            showStatus('There was an error saving your results. Please inform the experiment administrator.', 'error');
+            showStatus('There was an error saving your results. Results are stored locally.', 'error');
             console.error('Error:', error);
         });
     }
@@ -1597,4 +1568,3 @@
     
     // Initialize the game when page loads
     window.onload = init;
-    </script>
